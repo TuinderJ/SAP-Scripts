@@ -54,6 +54,10 @@ Sub CustomerPrice()
 		LR = 120
 		PMU = .35
 	End If
+	If CN = "353379" Then
+		LR = 94.25
+		PMU = .65
+	End If
 End Sub
 
 Sub TruckPrice()
