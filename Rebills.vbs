@@ -1,95 +1,118 @@
 'Welcome. Please read carefully.
 'Only change what is between the lines right below these instructions.
 
-'Adv is your advisor number. Make sure you put it between the quotation marks.
-'LR is the Labor Rate. Only use numbers here, do not put a dollar sign.
-'PMU is the Parts Markup. Use decimal form for the percentage. e.g. 30% should be written .30
-'Cap is if there is a cap for parts markup.
-
-'For "CustomerChange()", the top customer number (in quotes on the right side) is what the current customer assigned to the truck is and the bottom customer number is what it should be changed to.
-'Make sure to put both sets of customer numbers in quotes.
-'If you need to add more, copy from "If" to "End If" and paste it below the "End If" line.
-
-'For "CustomerPrice()", put the customer number in quotes right after "If" and fill out the pricing information in the lines under it.
-'You can have LR, PMU and Cap under each customer but Cap is not required.
-'If you need to add more, copy from "If" to "End If" and paste it below the "End If" line.
-
-'For "TruckPrice()", put the unit number in quotes and fill out the pricing information in the lines under it.
-'You can have LR, PMU and Cap under each customer but Cap is not required.
-'If you need to add more, copy from "If" to "End If" and paste it below the "End If" line.
-
-'If you have a customer that most of their trucks have the same pricing but a few trucks use different prices, use "CustomerPrice()" and "TruckPrice()".
-'This will check for customers first and trucks after. This means that if a truck is listed specifically, it will overwrite any other pricing, even if its customer number has pricing.
-
+'advisorNumber is your advisor number. Make sure you put it between the quotation marks.
 
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-Dim Adv
-Adv = "73363"
+
+Dim advisorNumber
+advisorNumber = "1958"
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Function loadConfigFile()
+  'Find the path name of this script
+  strPath = Wscript.scriptFullname
+  'Create File System Object
+  Set objFSO = createObject("Scripting.FileSystemObject")
+  'Create object for this script's file
+  Set objFile = objFSO.getFile(strPath)
+  'Get the folder that this script is located in
+  strFolder = objFSO.getParentFolderName(objFile)
+  'Create an Excel Object
+  Set objExcel = createObject("Excel.Application")
+  'Open the Rebill Pricing Excel File
+  Set objWorkbook = objExcel.workBooks.open(strFolder & "\Rebill Pricing.xlsx")
+  '-----------------------------Customer Pricing-----------------------------
+  'Load the sheet and store the data
+  Set objCustomerPricingSheet = objWorkbook.worksheets("Customer Pricing")
+  Dim rowcount
+  rowcount = objCustomerPricingSheet.Usedrange.Rows.Count
+
+  For i = 2 To rowcount
+    Redim Preserve customerPricingData(4, i - 2)
+    customerPricingData(0, i - 2) = objCustomerPricingSheet.cells(i, 2)
+    customerPricingData(1, i - 2) = objCustomerPricingSheet.cells(i, 3)
+    customerPricingData(2, i - 2) = objCustomerPricingSheet.cells(i, 4)
+    customerPricingData(3, i - 2) = objCustomerPricingSheet.cells(i, 5)
+  Next
+
+  'End of data, clear memory
+  Set objCustomerPricingSheet = Nothing
+
+  '-----------------------------Vehicle Pricing-----------------------------
+  'Load the sheet and store the data
+  Set objVehiclePricingSheet = objWorkbook.worksheets("Vehicle Pricing")
+  Dim rowcount
+  rowcount = objVehiclePricingSheet.Usedrange.Rows.Count
+
+  For i = 2 To rowcount
+    Redim Preserve vehiclePricingData(4, i - 2)
+    vehiclePricingData(0, i - 2) = objVehiclePricingSheet.cells(i, 1)
+    vehiclePricingData(1, i - 2) = objVehiclePricingSheet.cells(i, 2)
+    vehiclePricingData(2, i - 2) = objVehiclePricingSheet.cells(i, 3)
+    vehiclePricingData(3, i - 2) = objVehiclePricingSheet.cells(i, 4)
+  Next
+
+  'End of data, clear memory
+  Set objVehiclePricingSheet = Nothing
+
+  '-----------------------------Customer Number Change-----------------------------
+  'Load the sheet and store the data
+  Set objCustomerNumberChangeSheet = objWorkbook.worksheets("Customer Number Change")
+  Dim rowcount
+  rowcount = objCustomerNumberChangeSheet.Usedrange.Rows.Count
+
+  For i = 2 To rowcount
+    Redim Preserve customerNumberChangeData(1, i - 2)
+    customerNumberChangeData(0, i - 2) = objCustomerNumberChangeSheet.cells(i, 2)
+    customerNumberChangeData(1, i - 2) = objCustomerNumberChangeSheet.cells(i, 3)
+  Next
+
+  'End of data, clear memory
+  Set objCustomerNumberChangeSheet = Nothing
+
+  objWorkbook.close
+  objExcel.workbooks.close
+  objExcel.quit
+
+  Set objWorkbook = Nothing
+  Set objExcel = Nothing
+  Set objFile = Nothing
+  Set objFSO = Nothing
+End Function
 
 Sub CustomerChange()
-	If CN = "512896" Then
-		CN = "481639"
-	End If
-	If CN = "243278" Then
-		CN = "244377"
-	End If
+  'Change customer number if it was found
+  For i = 0 To UBound(customerNumberChangeData, 2)
+    If cLng(customerNumber) = customerNumberChangeData(0, i) Then customerNumber = customerNumberChangeData(1, i)
+  Next
 End Sub
 
 Sub CustomerPrice()
-	If CN = "560807" Then
-		LR = 110
-		PMU = .35
-	End If
-	If CN = "244377" Then
-		LR = 100
-		PMU = .35
-	End If
-	If CN = "570751" Then
-		LR = 115
-		PMU = .35
-	End If
-	If CN = "570760" Then
-		LR = 120
-		PMU = .35
-	End If
-	If CN = "353379" Then
-		LR = 94.25
-		PMU = .65
-	End If
+  'Load customer pricing if available
+  For i = 0 To UBound(customerPricingData, 2)
+    If cLng(customerNumber) = customerPricingData(0, i) Then
+      laborRate = customerPricingData(1, i)
+      partsMarkup = customerPricingData(2, i)
+      partsMarkupCap = customerPricingData(3, i)
+    End If
+  Next
 End Sub
 
 Sub TruckPrice()
-	If Unit = "272138" Or Unit = "272165" Or Unit = "272166" Or Unit = "272167" Or Unit = "9571329" Then
-		LR = 55
-		PMU = .10
-		Cap = 250
-	End If
-	If Unit = "272366" Or Unit = "8464513" Then
-		LR = 75
-		PMU = .10
-		Cap = 250
-	End If
-	If Unit = "272387" Or Unit = "272435" Or Unit = "272436" Then
-		LR = 65
-		PMU = .10
-		Cap = 250
-	End If
-	If Unit = "272466" Or Unit = "272467" Then
-		LR = 85
-		PMU = .10
-		Cap = 250
-	End If
+	'Change pricing if applicable
+	For i = 0 To UBound(vehiclePricingData,2)
+		If cLng(unitNumber) = vehiclePricingData(0, i) Then
+			laborRate = vehiclePricingData(1, i)
+			partsMarkup = vehiclePricingData(2, i)
+			partsMarkupCap = vehiclePricingData(3, i)
+		End If
+	Next
 End Sub
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-
-
-
-
 
 If Not IsObject(application) Then
    Set SapGuiAuto  = GetObject("SAPGUI")
@@ -111,7 +134,7 @@ On Error Resume Next
 session.findById("wnd[0]").maximize
 
 
-Dim a,b,c,d,x,i,l,p,an,Mess,Inv,RO,LR,PMU,Unit,VIN,CN,RC,Cap,DT,test,JT,LJ,JobN(),Job(),Sto(),LabT,Lab(),LJob(),LabC,LabCP,PJob(),PQty(),PrtN(),PrtD(),PCst()
+Dim a, b, c, d, x, i, l, p, an, Mess, Inv, RO, laborRate, partsMarkup, unitNumber, VIN, customerNumber, RC, partsMarkupCap, DT, test, JT, LJ, JobN(), Job(), Sto(), LabT, Lab(), LJob(), LabC, LabCP, PJob(), PQty(), PrtN(), PrtD(), PCst(), customerPricingData(), vehiclePricingData(), customerNumberChangeData()
 
 
 Do Until Len(INV) = 10
@@ -131,9 +154,9 @@ If LJ = "" Then
 	WScript.Quit
 End If
 
-LR = 140 '140
-PMU = .65 '.65
-Cap = 0
+laborRate = 140 '140
+partsMarkup = .65 '.65
+partsMarkupCap = ""
 
 DT = Replace(InputBox("Is there drive time?" + vbCr + "If so, what is the job number?"  + vbCr + "If there are multiple, separate the jobs with a comma. (i.e. 1,3)" + vbCr + "If not, leave blank.","Drive Time")," ","")
 
@@ -255,7 +278,7 @@ session.findById("wnd[0]/tbar[0]/btn[0]").press
 session.findById("wnd[0]/usr/ctxt/DBM/ORDER_SEARCH-VBELN").text = RO
 session.findById("wnd[0]").sendVKey 0
 
-Unit = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/txtIS_VLCACTDATA_ITEM-ZZUN").text
+unitNumber = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/txtIS_VLCACTDATA_ITEM-ZZUN").text
 VIN = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/txt/DBM/VEHORDCOM-VHVIN").text
 
 
@@ -373,9 +396,9 @@ If session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM
 	session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/ctxt/DBM/ORDER_SEARCH-PARTNER").text = temp
 	CheckCustomer()
 End If
-CN = session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/ctxt/DBM/ORDER_SEARCH-PARTNER").text
+customerNumber = session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/ctxt/DBM/ORDER_SEARCH-PARTNER").text
 CustomerChange()
-session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/ctxt/DBM/ORDER_SEARCH-PARTNER").text = CN
+session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/ctxt/DBM/ORDER_SEARCH-PARTNER").text = customerNumber
 CustomerPrice()
 TruckPrice()
 If RC = 16 Then
@@ -384,13 +407,13 @@ If RC = 16 Then
 		WScript.Quit
 	End If
 	session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/ctxt/DBM/ORDER_SEARCH-PARTNER").text = temp
-	LR = 140
-	PMU = .65
-	Cap = 0
+	laborRate = 140
+	partsMarkup = .65
+	partsMarkupCap = ""
 	CheckCustomer()
 End If
 session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/cmb/DBM/ORDER_SEARCH-AUFART").key = "ZS00"
-session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/ctxt/DBM/ORDER_SEARCH-PERNR").text = Adv
+session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/ctxt/DBM/ORDER_SEARCH-PERNR").text = advisorNumber
 session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/btnBUTTON03").press
 
 
@@ -473,7 +496,7 @@ For i = 0 To l - 1
 	session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-ITOBJID").text = "LABOR REBILL"
 	session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-ZMENG").text = Lab(i)
 	session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-DESCR1").text = "Mobile Labor"
-	session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-KBETM").text = LR
+	session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-KBETM").text = laborRate
 	session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-MATNR18").text = "REBILLSUB"
 	session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-JOBS").text = LJob(i)
 	session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-REBATE").text = Round(LabCP * Lab(i),2)
@@ -488,14 +511,14 @@ For i = 0 To p - 1
 	If InStr(PrtN(i),"PARTSBUYOUT") + InStr(PrtN(i),"SUBLET") > 0 Then
 		session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-KBETM").text = Round(Round(PCst(i) / PQty(i),2) * 1.2,2)
 	Else
-		If Not Cap = 0 Then
-			If Not Round(Round(PCst(i) / PQty(i),2) * (1 + PMU),2) > Round(PCst(i) / PQty(i),2) + Cap Then
-				session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-KBETM").text = Round(Round(PCst(i) / PQty(i),2) * (1 + PMU),2)
+		If Not partsMarkupCap = "" Then
+			If Not Round(Round(PCst(i) / PQty(i),2) * (1 + partsMarkup),2) > Round(PCst(i) / PQty(i),2) + partsMarkupCap Then
+				session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-KBETM").text = Round(Round(PCst(i) / PQty(i),2) * (1 + partsMarkup),2)
 			Else
-				session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-KBETM").text = Round(PCst(i) / PQty(i),2) + Cap
+				session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-KBETM").text = Round(PCst(i) / PQty(i),2) + partsMarkupCap
 			End If
 		Else
-			session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-KBETM").text = Round(Round(PCst(i) / PQty(i),2) * (1 + PMU),2)
+			session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/txt/DBM/S_POS-KBETM").text = Round(Round(PCst(i) / PQty(i),2) * (1 + partsMarkup),2)
 		End If
 	End If
 	session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-MATNR18").text = "REBILLSUB"
