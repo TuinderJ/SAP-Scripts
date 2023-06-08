@@ -1,5 +1,5 @@
 dim JOB, LABOR_CODE, advisorNumber, branch, vehiclesNotDone, trucksNotCreatedCount, userWishesToContinue, trucksNotCreatedMessage, customerUnitNumber
-dim TRUCKS(1)
+dim TRUCKS(8)
 dim trucksNotCreated()
 
 JOB = "WEEKLY INSPECTION"
@@ -10,13 +10,13 @@ trucksNotCreatedCount = 0
 
 TRUCKS(0) = "5HTSA4427J7600902"
 TRUCKS(1) = "558MTBN29KB004437"
-' TRUCKS(2) = "10BAAA235MP250300"
-' TRUCKS(3) = "10BAAA237MP250296"
-' TRUCKS(4) = "1XPBDP9X7PD853776"
-' TRUCKS(5) = "1XPBDP9X0PD853778"
-' TRUCKS(6) = "1XPBDP9X1PD853773"
-' TRUCKS(7) = "1XPBDP9X8MD740639"
-' TRUCKS(8) = "1XPBDP9X6MD740638"
+TRUCKS(2) = "10BAAA235MP250300"
+TRUCKS(3) = "10BAAA237MP250296"
+TRUCKS(4) = "1XPBDP9X7PD853776"
+TRUCKS(5) = "1XPBDP9X0PD853778"
+TRUCKS(6) = "1XPBDP9X1PD853773"
+TRUCKS(7) = "1XPBDP9X8MD740639"
+TRUCKS(8) = "1XPBDP9X6MD740638"
 
 function vehicleIsLocked()
   on error resume next
@@ -55,6 +55,7 @@ function makeRepairOrder(truck)
   session.findById("wnd[0]/usr/ssubSUBSCREEN1:/DBM/SAPLVM05:1100/tabsTABSTRIP/tabpSEARCHVM/ssubSUBSCREEN1:/DBM/SAPLVM05:1200/btnBUTTON").press
   customerUnitNumber = session.findById("wnd[0]/usr/tabsMAIN/tabpVEHDETAIL/ssubDETAIL_SUBSCR:/DBM/SAPLVM08:2001/ssubDETAIL_SUBSCR:SAPLZZGC001_01:7100/tabsDATAENTRY/tabpDATAENTRY_FC1/ssubDATAENTRY_SCA:SAPLZZGC001_01:9100/ctxtVLCACTDATA_ITEM_S-VHCEX").text
   
+  userWishesToContinue = true
   do while vehicleIsLocked()
   loop
 
