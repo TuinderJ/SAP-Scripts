@@ -1,11 +1,12 @@
-Dim i, numberOfParts, numberOfOutputParts, objExcel, objWorkbook, partsWithNoBin(), outputPartsList()
+Dim i, numberOfParts, numberOfOutputParts, objExcel, objWorkbook, partsWithNoBin(), outputPartsList(), BRANCH
+BRANCH = "7013"
 
 Sub pullReport()
   session.findById("wnd[0]/tbar[0]/okcd").text = "/NZZBIN"
   session.findById("wnd[0]/tbar[0]/btn[0]").press
   session.findById("wnd[0]/usr/ctxtS_MATNR-LOW").text = ""
   session.findById("wnd[0]/usr/txtS_EMNFR-LOW").text = ""
-  session.findById("wnd[0]/usr/ctxtS_WERKS-LOW").text = "7013"
+  session.findById("wnd[0]/usr/ctxtS_WERKS-LOW").text = BRANCH
   session.findById("wnd[0]/usr/ctxtS_LGORT-LOW").text = "0001"
   session.findById("wnd[0]/usr/txtS_LGPBE-LOW").text = ""
   session.findById("wnd[0]/usr/ctxtS_MTART-LOW").text = ""
@@ -38,7 +39,7 @@ Sub findHistoryOnNoBinParts()
 
   session.findById("wnd[0]/usr/ctxtMATNR-LOW").text = ""
   session.findById("wnd[0]/usr/ctxtMATNR-HIGH").text = ""
-  session.findById("wnd[0]/usr/ctxtWERKS-LOW").text = "7013"
+  session.findById("wnd[0]/usr/ctxtWERKS-LOW").text = BRANCH
   session.findById("wnd[0]/usr/ctxtWERKS-HIGH").text = ""
   session.findById("wnd[0]/usr/ctxtLGORT-LOW").text = "0001"
   session.findById("wnd[0]/usr/ctxtLGORT-HIGH").text = ""
