@@ -6,7 +6,7 @@ If Not IsObject(connection) Then
    Set connection = application.Children(0)
 End If
 If Not IsObject(session) Then
-   Set session    = connection.Children(0)
+   Set session    = connection.Children(1)
 End If
 If IsObject(WScript) Then
    WScript.ConnectObject session,     "on"

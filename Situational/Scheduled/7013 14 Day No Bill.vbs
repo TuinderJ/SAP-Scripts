@@ -222,6 +222,12 @@ Sub saveSpreadsheetAndSendEmail()
   Set objEmail = Nothing
 End Sub
 
+Sub goToHomePage()
+  session.findById("wnd[0]").sendVKey 3
+  session.findById("wnd[0]").sendVKey 3
+  session.findById("wnd[0]").sendVKey 3
+End Sub
+
 If Not IsObject(application) Then
    Set SapGuiAuto  = GetObject("SAPGUI")
    Set application = SapGuiAuto.GetScriptingEngine
@@ -248,3 +254,4 @@ If MsgBox("Review the spreadsheet." & vbCr & "If you want to proceed with the em
   WScript.Quit
 End If
 saveSpreadsheetAndSendEmail()
+goToHomePage()
