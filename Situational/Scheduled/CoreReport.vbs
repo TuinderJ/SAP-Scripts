@@ -40,7 +40,7 @@ Function pullBinLocationReport()
 
     session.findById("wnd[0]/mbar/menu[0]/menu[3]/menu[1]").select
     session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\Users\tuinderj\OneDrive - Rush Enterprises\Desktop\"
-    session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "Inventory vs Budget.XLSX"
+    session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "Delete Me.XLSX"
     session.findById("wnd[1]/tbar[0]/btn[0]").press
     session.findById("wnd[0]").sendVKey 3
     session.findById("wnd[0]").sendVKey 3
@@ -77,13 +77,13 @@ Dim branchInventory(1, 3)
 
 Set WshShell = WScript.CreateObject("WScript.Shell")
 strDesktop = WshShell.SpecialFolders("Desktop")
-strFilePath = strDesktop & "\Inventory vs Budget.XLSX"
+strFilePath = strDesktop & "\Delete Me.XLSX"
 
 pullBinLocationReport()
 
 WScript.Sleep 2500
 Set objExcel = GetObject(,"Excel.Application")
-Set objWorkbook = objExcel.Workbooks("Inventory vs Budget.XLSX")
+Set objWorkbook = objExcel.Workbooks("Delete Me.XLSX")
 objWorkbook.Application.Run "PERSONAL.XLSB!InventoryVsBudget"
 
 For i = 0 To 3

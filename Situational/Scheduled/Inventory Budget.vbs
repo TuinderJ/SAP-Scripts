@@ -12,7 +12,8 @@ function askForRecipients()
         "swatsenbergr@rushenterprises.com; " &_
         "JacksonC1@RushEnterprises.com; " &_
         "TuinderJ@rushenterprises.com;" &_
-        "DavilaV@RushEnterprises.com"
+        "DavilaV@RushEnterprises.com;" &_
+        "SheridanM@RushEnterprises.com"
     else
         WScript.Quit
     end if

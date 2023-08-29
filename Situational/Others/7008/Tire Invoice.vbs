@@ -1,6 +1,6 @@
 Dim advisorNumber, branch
-advisorNumber = "73363"
-branch = "7039"
+advisorNumber = "4608"
+branch = "7008"
 
 Dim invoiceNumber, purchaseOrderNumber, orderType, invoiceCost, invoiceHasTires, unitNumber, repairOrderNumber, laborCost, purchaseReq, vendorNumber, jobDescription, roShouldBeClosed, firstOpenPoLine
 roShouldBeClosed = true
@@ -121,10 +121,6 @@ function askForUserInput()
     loop
   end if
 
-  if laborCost = "" then
-    laborCost = invoiceCost
-  end if
-
   if not validate() then
     exit function
   end if
@@ -147,9 +143,10 @@ function goToPOForConfigInformation()
   session.findById("wnd[1]").sendVKey 0
 
   ' Grab header text to extract configs
-  itteration = findItteration()
-  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT3").select
-  headerText = session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT3/ssubTABSTRIPCONTROL2SUB:SAPLMEGUI:1230/subTEXTS:SAPLMMTE:0100/subEDITOR:SAPLMMTE:0101/cntlTEXT_EDITOR_0101/shellcont/shell").text
+  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0013/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT3").select
+  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0020/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT3").select
+  headerText = session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0013/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT3/ssubTABSTRIPCONTROL2SUB:SAPLMEGUI:1230/subTEXTS:SAPLMMTE:0100/subEDITOR:SAPLMMTE:0101/cntlTEXT_EDITOR_0101/shellcont/shell").text
+  headerText = session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0020/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT3/ssubTABSTRIPCONTROL2SUB:SAPLMEGUI:1230/subTEXTS:SAPLMMTE:0100/subEDITOR:SAPLMMTE:0101/cntlTEXT_EDITOR_0101/shellcont/shell").text
 
   conditions = split(split(headerText, vbCr)(0),"|")
   vendorNumber = conditions(0)
@@ -216,15 +213,19 @@ function validate()
       end if
     elseif changeEntryOption = "5" then
       ' Vendor Number
-      vendorNumber = inputBox("What vendor is this for?" & vbCr & "1) Michelin" & vbCr & "2) CMC" & vbCr & "3) Southern Tire Mart")
+      vendorNumber = inputBox("What vendor is this for?" & vbCr & "1) Michelin" & vbCr & "2) Bridgestone / Yokohama / Continental" & vbCr & "3) Southern Tire Mart (labor)" & vbCr & "4) Jack's Tires (labor)" & vbCr & "5) Border Tire (labor)", "Vendor")
       if vendorNumber = "" then
         WScript.Quit
       elseif vendorNumber = "1" then
-          vendorNumber = "214567"
+        vendorNumber = "214567"
       elseif vendorNumber = "2" then
-          vendorNumber = "232485"
+        vendorNumber = "200524"
       elseif vendorNumber = "3" then
-          vendorNumber = "200524"
+        vendorNumber = "207488"
+      elseif vendorNumber = "4" then
+        vendorNumber = "209330"
+      elseif vendorNumber = "5" then
+        vendorNumber = "242462"
       else
         vendorNumber - ""
         msgBox "Please enter a valid option.", 0, "Error"
@@ -313,10 +314,6 @@ function makeRepairOrder()
     end if
   end if
 
-  session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2067/subSUBSCREEN_2067:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3200/btnCNT_BTN_HEADTEXT").press
-  session.findById("wnd[1]/usr/cntlLTEXT_CONTAINER/shellcont/shell/shellcont[1]/shell/shellcont[0]/shell").text = "Tires"
-  session.findById("wnd[1]/tbar[0]/btn[8]").press
-
   ' Go to the job tab and fill out job 1 as tires
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB02").select
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB02/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI1:2341/txt/DBM/JOB_COM-DESCR1").text = jobDescription
@@ -330,7 +327,7 @@ function makeRepairOrder()
   if orderType = "Internal" or orderType = "VIO" then
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/txt/DBM/S_POS-DESCR1").text = "TIRES"
   elseif orderType = "Retail" then
-    session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/txt/DBM/S_POS-DESCR1").text = "LABOR"
+    session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/txt/DBM/S_POS-DESCR1").text = "LALBOR"
   end if
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/ctxt/DBM/S_POS-JOBS").text = "1"
   if orderType = "Retail" then
@@ -500,41 +497,16 @@ function goToRepairOrderAndMIGO()
   session.findById("wnd[0]/usr/ssubSUB_MAIN_CARRIER:SAPLMIGO:0002/subSUB_HEADER:SAPLMIGO:0101/subSUB_HEADER:SAPLMIGO:0100/tabsTS_GOHEAD/tabpOK_GOHEAD_GENERAL/ssubSUB_TS_GOHEAD_GENERAL:SAPLMIGO:0110/txtGOHEAD-LFSNR").text = invoiceNumber
   session.findById("wnd[0]/tbar[1]/btn[23]").press
 
-  ' Check the date
-  if roShouldBeClosed then
-    checkDateForLastSevenDaysOfMonth()
-  end if
-
-  if orderType = "Internal" or orderType = "VIO" then
-    if roShouldBeClosed then
-      ' Open RO, release, create billing
-      session.findById("wnd[0]/tbar[1]/btn[13]").press
-      session.findById("wnd[0]/tbar[1]/btn[37]").press
-      session.findById("wnd[0]/tbar[1]/btn[40]").press
-    end if
+  if orderType = "Internal" or orderType = "VIO" and roShouldBeClosed then
+    ' Open RO, release, create billing
+    session.findById("wnd[0]/tbar[1]/btn[13]").press
+    session.findById("wnd[0]/tbar[1]/btn[37]").press
+    session.findById("wnd[0]/tbar[1]/btn[40]").press
   end if
   if orderType = "VIO" and roShouldBeClosed then
     session.findById("wnd[1]/tbar[0]/btn[0]").press
   end if
 
-end function
-
-function checkDateForLastSevenDaysOfMonth()
-  dim currentMonth, currentDay, lastDayOfMonth
-  currentDate = date
-  currentMonth = month(currentDate)
-  currentDay = day(currentDate)
-  if currentMonth = 1 or currentMonth = 3 or currentMonth = 5 or currentMonth = 7 or currentMonth = 9 or currentMonth = 11 then
-    lastDayOfMonth = 31
-  elseif currentMonth = 4 or currentMonth = 6 or currentMonth = 8 or currentMonth = 10 or currentMonth = 12 then
-    lastDayOfMonth = 30
-  elseif currentMonth = 2 then
-    lastDayOfMonth = 28
-  end if
-  
-  if lastDayOfMonth - currentDay < 7 then
-    roShouldBeClosed = false
-  end if
 end function
 
 

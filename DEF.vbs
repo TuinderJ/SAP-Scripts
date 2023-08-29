@@ -54,25 +54,40 @@ Dim unitNumbers()
 Dim defQuantities()
 Dim dates()
 Dim initials()
-Dim userInput, i, x, verifyTrucks, trucksNotFound, trucksFound, result
+Dim userInput, i, x, verifyTrucks, trucksNotFound, trucksFound, result, listSoFar
 
 i = 0
 Do While True
-  userInput = InputBox("What are the initials of who dispensed the DEF?" & vbCr & "If you're done, leave it blank.", "Initials")
+  ' listSoFar = ""
+  ' For counter = 0 To i
+  '   listSoFar = listSoFar & vbCr & initials(counter) & "    " & dates(counter) & "    " & unitNumbers(counter) & "    " & defQuantities(counter)
+  ' Next
+  userInput = UCase(InputBox("What are the initials of who dispensed the DEF?" & vbCr & "If you're done, leave it blank." & vbCr & listSoFar, "Initials"))
   If userInput = "" Then
       Exit Do
   End If
   Redim Preserve initials(i)
   initials(i) = userInput
+  listSoFar = listSoFar & vbCr & userInput
   Redim Preserve dates(i)
-  dates(i) = InputBox("What is the date that the DEF was used?", "Date")
+  userInput = InputBox("What is the date that the DEF was used?" & vbCr & listSoFar, "Date")
+  dates(i) = userInput
+  listSoFar = listSoFar & "      " & userInput
   Redim Preserve unitNumbers(i)
-  unitNumbers(i) = InputBox("What is the unit number of the truck?", "Unit Number")
+  userInput = InputBox("What is the unit number of the truck?" & vbCr & listSoFar, "Unit Number")
+  unitNumbers(i) = userInput
+  listSoFar = listSoFar & "      " & userInput
   Redim Preserve defQuantities(i)
-  defQuantities(i) = InputBox("How many gallons were used?", "Qty")
+  userInput = InputBox("How many gallons were used?" & vbCr & listSoFar, "Qty")
+  defQuantities(i) = userInput
+  listSoFar = listSoFar & "      " & userInput
   i = i + 1  
 Loop
 i = i - 1
+
+If MsgBox("Do you want to proceed?" & vbCr & listSoFar, vbYesNo, "Verify") = vbNo Then
+  WScript.Quit
+End If
 
 If i = -1 Then
   WScript.Quit

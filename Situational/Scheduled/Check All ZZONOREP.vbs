@@ -116,7 +116,8 @@ With objEmail
         "swatsenbergr@rushenterprises.com; " &_
         "JacksonC1@RushEnterprises.com; " &_
         "Arndtb@RushEnterprises.com; " &_
-        "DavilaV@RushEnterprises.com"
+        "DavilaV@RushEnterprises.com;" &_
+        "SheridanM@RushEnterprises.com"
     .CC = _
         "woodr@rushenterprises.com"
     .BCC = _

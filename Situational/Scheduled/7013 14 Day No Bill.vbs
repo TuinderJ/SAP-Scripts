@@ -16,19 +16,23 @@ End Sub
 
 Sub findNoBinParts()
   numberOfParts = 0
+  i = 0
   Do While True
-    session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").setCurrentCell numberOfParts,"MATNR"
-    binLocation = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").getCellValue(numberOfParts,"LGPBE")
+    session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").setCurrentCell i,"MATNR"
+    binLocation = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").getCellValue(i,"LGPBE")
     If binLocation <> "" Then
       numberOfParts = numberOfParts - 1
       Exit Do
     End If
     Redim Preserve partsWithNoBin(1, numberOfParts)
-    partNumber = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").getCellValue(numberOfParts,"MATNR")
-    partDescription = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").getCellValue(numberOfParts,"MAKTX")
-    partsWithNoBin(0, numberOfParts) = partNumber
-    partsWithNoBin(1, numberOfParts) = partDescription
-    numberOfParts = numberOfParts + 1
+    partNumber = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").getCellValue(i,"MATNR")
+    If partNumber <> "FREIGHT" Then
+      partDescription = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").getCellValue(i,"MAKTX")
+      partsWithNoBin(0, numberOfParts) = partNumber
+      partsWithNoBin(1, numberOfParts) = partDescription
+      numberOfParts = numberOfParts + 1
+    End If
+    i = i + 1
   Loop
 End Sub
 

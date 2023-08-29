@@ -2,21 +2,20 @@ Dim advisorNumber, branch
 advisorNumber = "73363"
 branch = "7039"
 
-Dim invoiceNumber, purchaseOrderNumber, orderType, invoiceCost, invoiceHasTires, unitNumber, repairOrderNumber, laborCost, purchaseReq, vendorNumber, jobDescription, roShouldBeClosed, firstOpenPoLine
-roShouldBeClosed = true
+Dim invoiceNumber, purchaseOrderNumber, orderType, invoiceCost, invoiceHasTires, unitNumber, repairOrderNumber, laborCost, purchaseReq, vendorNumber, jobDescription
 
-function isValidCostFormat(cost)
+function isvalidCostFormat(cost)
   if not isNumeric(cost) then
-    isValidCostFormat = false
+    isvalidCostFormat = false
     exit function
   end if
   if inStr(cost, ".") then
     if len(split(cost, ".")(1)) > 2 then
-      isValidCostFormat = false
+      isvalidCostFormat = false
       exit function
     end if
   end if
-  isValidCostFormat = true
+  isvalidCostFormat = true
 end function
 
 function askForUserInput()
@@ -46,6 +45,41 @@ function askForUserInput()
     end if
   end if
 
+  ' Learn if it's internal, retail or VIO
+  if orderType = "" then
+    orderType = inputBox("Will this be internal or retail?" & vbCr & "1) Internal" & vbCr & "2) Retail" & vbCr & "3) VIO", "RO Type")
+    if orderType = "" then
+      WScript.Quit
+    elseif orderType = 1 then
+      orderType = "INTERNAL"
+    elseif orderType = 2 then
+      orderType = "RETAIL"
+    elseif orderType = 3 then
+      orderType = "VIO"
+    else
+      msgBox "Please enter a valid input.", 0, "Error"
+      orderType = ""
+      exit function
+    end if
+  end if
+
+  if vendorNumber = "" then
+    vendorNumber = inputBox("What vendor is this for?" & vbCr & "1) Michelin" & vbCr & "2) CMC" & vbCr & "3) Southern Tire Mart", "Vendor")
+    if vendorNumber = "" then
+      WScript.Quit
+    elseif vendorNumber = "1" then
+      vendorNumber = "214567"
+    elseif vendorNumber = "2" then
+      vendorNumber = "232485"
+    elseif vendorNumber = "3" then
+      vendorNumber = "200524"
+    else
+      msgBox "Please enter a valid input.", 0, "Error"
+      vendorNumber = ""
+      exit function
+    end if
+  end if
+
   ' Get the PO number
   if purchaseOrderNumber = "" then
     purchaseOrderNumber = inputBox("What is the purchase order number?", "PO Number")
@@ -58,14 +92,22 @@ function askForUserInput()
     end if
   end if
 
-  goToPOForConfigInformation()
-
-  do until roTypeIsVerrified()
-  loop
+  ' Get the unit number of the truck
+  if unitnumber = "" then
+    unitNumber = replace(inputBox("What is the unit number this goes to?", "Unit Number"), "-", "")
+    if unitNumber = "" then
+      WScript.Quit
+    end if
+    if len(unitNumber) <> 6 and len(unitNumber) <> 7 then
+      msgBox "Please enter a valid unit number format.", 0, "Error"
+      unitNumber = ""
+      exit function
+    end if
+  end if
 
   ' Get the job title
   if jobDescription = "" then
-    jobDescription = inputBox("What would you like to be the job name?", "Job Name")
+    jobDescription = inputBox("What would you like to be the job description?", "Job Description")
     if jobDescription = "" then
       WScript.Quit
     end if
@@ -76,6 +118,10 @@ function askForUserInput()
     invoiceNumber = inputBox("What is the invoice number?", "Invoice Number")
     if invoiceNumber = "" then
       WScript.Quit
+    elseif len(invoiceNumber) <> 12 and len(invoiceNumber) <> 9 and len(invoiceNumber) <> 8 then
+      msgBox "Please enter a valid invoice number.", 0, "Error"
+      invoiceNumber = ""
+      exit function
     end if
   end if
 
@@ -86,7 +132,7 @@ function askForUserInput()
     if invoiceCost = "" then
       WScript.Quit
     else
-      if not isValidCostFormat(invoiceCost) then
+      if not isvalidCostFormat(invoiceCost) then
         msgBox "Please give a valid cost format.", 0, "Error"
         invoiceCost = ""
         exit function
@@ -94,173 +140,41 @@ function askForUserInput()
     end if
     invoiceCost = cDbl(invoiceCost)
   end if
-  
+  laborCost = invoiceCost
+
   ' If it's retail, ask if there are tires
-  if invoiceHasTires = "" then
-    invoiceHasTires = false
-    if orderType = "Retail" then
-      if msgBox("Are there tires on this invoice?", vbYesNo, "Tires") = 6 then
-        invoiceHasTires = true
-      else
-        laborCost = invoiceCost
-      end if
+  invoiceHasTires = false
+  if orderType = "RETAIL" then
+    if msgBox("Are there tires on this invoice?", vbYesNo, "Tires") = 6 then
+      invoiceHasTires = true
     end if
   end if
   
   ' If the invoice has tires on it, we need to know the cost for just labor
-  if invoiceHasTires and laborCost = "" then
-    laborCost = inputBox("What is the cost for labor? (Invoice total minus the cost of tires)", "Labor Cost")
+  if invoiceHasTires then
+    laborCost = inputBox("What is the cost for labor? (invoice total minus the cost of tires)", "Labor Cost")
     if laborCost = "" then
       WScript.Quit
     end if
     do until isvalidCostFormat(laborCost)
-    laborCost = inputBox("You've entered an invalid currency format. Please enter a valid cost.", "Invalid Cost", laborCost)
-    if laborCost = "" then
-      WScript.Quit
-    end if
+      laborCost = inputBox("You've entered an invalid currency format. Please enter a valid cost.", "Invalid Cost", laborCost)
+      if laborCost = "" then
+        WScript.Quit
+      end if
     loop
-  end if
-
-  if laborCost = "" then
-    laborCost = invoiceCost
-  end if
-
-  if not validate() then
-    exit function
   end if
   
   ' If all input is received, return true to move on
   askForUserInput = true
 end function
 
-function goToPOForConfigInformation()
-  on error resume next
-  if vendorNumber <> "" then
-    exit function
-  end if
-
-  ' Go to the PO
-  session.findById("wnd[0]/tbar[0]/okcd").text = "/NME23N"
-  session.findById("wnd[0]/tbar[0]/btn[0]").press
-  session.findById("wnd[0]/tbar[1]/btn[17]").press
-  session.findById("wnd[1]/usr/subSUB0:SAPLMEGUI:0003/ctxtMEPO_SELECT-EBELN").text = purchaseOrderNumber
-  session.findById("wnd[1]").sendVKey 0
-
-  ' Grab header text to extract configs
-  itteration = findItteration()
-  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT3").select
-  headerText = session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT3/ssubTABSTRIPCONTROL2SUB:SAPLMEGUI:1230/subTEXTS:SAPLMMTE:0100/subEDITOR:SAPLMMTE:0101/cntlTEXT_EDITOR_0101/shellcont/shell").text
-
-  conditions = split(split(headerText, vbCr)(0),"|")
-  vendorNumber = conditions(0)
-  unitNumber = replace(conditions(1),"-","")
-  orderType = conditions(2)
-end function
-
-function roTypeIsVerrified()
-  roTypeIsVerrified = false
-  if orderType = "Other" then
-    orderType = inputBox("What RO type would you like to open this under?" & vbCr & "1) Internal" & vbCr & "2) Retail" & vbCr & "3) VIO", "RO Type")
-    if orderType = "1" then
-      orderType = "Internal"
-    elseif orderType = "2" then
-      orderType = "Retail"
-    elseif orderType = "3" then
-      orderType = "VIO"
-    else
-      orderType = "Other"
-      msgBox "Please enter a valid option.", 0, "Error"
-      exit function
-    end if
-  end if
-  roTypeIsVerrified = true
-end function
-
-function validate()
-  validateMessage = "Is all of the following information correct?" & vbCr & vbCr & "Advisor Number:" & vbCr & advisorNumber & vbCr & vbCr & "Job Title:" & vbCr & jobDescription & vbCr & vbCr & "Unit Number:" & vbCr & unitNumber & vbCr & vbCr & "RO Type:" & vbCr & orderType & vbCr & vbCr & "Vendor Number:" & vbCr & vendorNumber & vbCr & vbCr & "Invoice Number:" & vbCr & invoiceNumber & vbCr & vbCr & "Total Invoice Amount:" & vbCr & invoiceCost
-  if orderType = "Retail" and invoiceHasTires then
-    validateMessage = validateMessage & vbCr & vbCr & "Labor Cost:" & vbCr & laborCost & vbCr & vbCr & "Tire Cost:" & vbCr & (invoiceCost - laborCost)
-  end if
-
-  if msgBox(validateMessage, vbYesNo, "Validate") = vbNo then
-    validateMessage = "Which entry would you like to change?" & vbCr & vbCr & "1) Advisor Number:" & vbCr & advisorNumber & vbCr & vbCr & "2) Job Title:" & vbCr & jobDescription & vbCr & vbCr & "3) Unit Number:" & vbCr & unitNumber & vbCr & vbCr & "4) RO Type:" & vbCr & orderType & vbCr & vbCr & "5) Vendor Number:" & vbCr & vendorNumber & vbCr & vbCr & "6) Invoice Number:" & vbCr & invoiceNumber & vbCr & vbCr & "7) Total Invoice Amount:" & vbCr & invoiceCost
-    if orderType = "Retail" then
-      validateMessage = validateMessage & vbCr & vbCr & "8) Invoice Has Tires:" & vbCr & invoiceHasTires
-      if invoiceHasTires then
-        Dim changeEntryOption
-        validateMessage = validateMessage & vbCr & vbCr & "9) Labor Cost:" & vbCr & laborCost
-      end if
-    end if
-    changeEntryOption = inputBox(validateMessage,"Validate")
-    if changeEntryOption = "1" then
-      ' Advisor Number
-      advisorNumber = ""
-    elseif changeEntryOption = "2" then
-      ' Job Title
-      jobDescription = ""
-    elseif changeEntryOption = "3" then
-      ' Unit Number
-      unitNumber = replace(inputBox("What would you like to change the unit number to?","Unit Number Change"), "-", "")
-    elseif changeEntryOption = "4" then
-      ' RO Type
-      orderType = inputBox("What would you like to change the RO type to?" & vbCr & "1) Internal" & vbCr & "2) Retail" & vbCr & "3) VIO")
-      if orderType = "1" then
-        orderType = "Internal"
-      elseif orderType = "2" then
-        orderType = "Retail"
-      elseif orderType = "3" then
-        orderType = "VIO"
-      else
-        orderType = "Other"
-        msgBox "Please enter a valid option.", 0, "Error"
-      end if
-    elseif changeEntryOption = "5" then
-      ' Vendor Number
-      vendorNumber = inputBox("What vendor is this for?" & vbCr & "1) Michelin" & vbCr & "2) CMC" & vbCr & "3) Southern Tire Mart")
-      if vendorNumber = "" then
-        WScript.Quit
-      elseif vendorNumber = "1" then
-          vendorNumber = "214567"
-      elseif vendorNumber = "2" then
-          vendorNumber = "232485"
-      elseif vendorNumber = "3" then
-          vendorNumber = "200524"
-      else
-        vendorNumber - ""
-        msgBox "Please enter a valid option.", 0, "Error"
-        exit function
-      end if
-    elseif changeEntryOption = "6" then
-      ' Invoice Number
-      invoiceNumber = ""
-    elseif changeEntryOption = "7" then
-      ' Invoice Cost
-      invoiceCost = ""
-    elseif changeEntryOption = "8" then
-      ' Invoice Has Tires
-      invoiceHasTires = ""
-      laborCost = ""
-    elseif changeEntryOption = "9" then
-      ' Labor Cost
-      laborCost = ""
-    elseif changeEntryOption = "" then
-      WScript.Quit
-    else
-      ' Invalid Entry
-    end if
-    validate = false
-    exit function
-  end if
-  validate = true
-end function
-
 function vehicleIsLocked()
   on error resume next
   ' Select the order tab and click on appropriate order
   session.findById("wnd[0]/usr/tabsMAIN/tabpORDER").select
-  if orderType = "Internal" then
+  if orderType = "INTERNAL" then
     session.findById("wnd[0]/usr/tabsMAIN/tabpORDER/ssubDETAIL_SUBSCR:/DBM/SAPLVM08:2001/cntlDOCKING_CONTROL_PROXY/shellcont/shell").clickLink "ZS20","Column01"
-  elseif orderType = "Retail" then
+  elseif orderType = "RETAIL" then
     session.findById("wnd[0]/usr/tabsMAIN/tabpORDER/ssubDETAIL_SUBSCR:/DBM/SAPLVM08:2001/cntlDOCKING_CONTROL_PROXY/shellcont/shell").clickLink "ZS00","Column01"
   elseif orderType = "VIO" then
     session.findById("wnd[0]/usr/tabsMAIN/tabpORDER/ssubDETAIL_SUBSCR:/DBM/SAPLVM08:2001/cntlDOCKING_CONTROL_PROXY/shellcont/shell").clickLink "ZS15","Column01"
@@ -274,7 +188,7 @@ function vehicleIsLocked()
   session.findById("wnd[1]/tbar[0]/btn[0]").press
   session.findById("wnd[1]/tbar[0]/btn[0]").press
   if message <> "" then
-    if msgBox(message & vbCr & "Would you like to try again?" & vbCr & "Pressing no cancels this entire process.", vbYesNo, "Try Again") = 6 then
+    if msgBox(message & vbCr & "Would you like to try again?", vbYesNo, "Try Again") = 6 then
       vehicleIsLocked = true
       exit function
     else
@@ -306,16 +220,7 @@ function makeRepairOrder()
   ' VIO needs the account assignment category
   if orderType = "VIO" then
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2067/subSUBSCREEN_2067:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3200/subSUB_ACCOUNTING:/DBM/SAPLORDER_UI:2204/cmb/DBM/VBAK_COM-AC_AS_TYP").key = "901"
-    if session.findById("wnd[0]/sbar").text = "AAC 901 not allowed for Vehicle Status P500" then
-      session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2067/subSUBSCREEN_2067:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3200/subSUB_ACCOUNTING:/DBM/SAPLORDER_UI:2204/cmb/DBM/VBAK_COM-AC_AS_TYP").key = "902"
-      msgBox "You'll need to come back later to change the Account Assignment Category to 901 after the vehicle is in P200 status.", 0, "VIO"
-      roShouldBeClosed = false
-    end if
   end if
-
-  session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2067/subSUBSCREEN_2067:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3200/btnCNT_BTN_HEADTEXT").press
-  session.findById("wnd[1]/usr/cntlLTEXT_CONTAINER/shellcont/shell/shellcont[1]/shell/shellcont[0]/shell").text = "Tires"
-  session.findById("wnd[1]/tbar[0]/btn[8]").press
 
   ' Go to the job tab and fill out job 1 as tires
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB02").select
@@ -327,19 +232,19 @@ function makeRepairOrder()
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/cmb/DBM/S_POS-ITCAT").key = "P010"
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/ctxt/DBM/S_POS-ITOBJID").text = "SUBLETNT"
   session.findById("wnd[0]").sendVKey 0
-  if orderType = "Internal" or orderType = "VIO" then
+  if orderType = "INTERNAL" or orderType = "VIO" then
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/txt/DBM/S_POS-DESCR1").text = "TIRES"
-  elseif orderType = "Retail" then
-    session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/txt/DBM/S_POS-DESCR1").text = "LABOR"
+  elseif orderType = "RETAIL" then
+    session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/txt/DBM/S_POS-DESCR1").text = "LALBOR"
   end if
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/ctxt/DBM/S_POS-JOBS").text = "1"
-  if orderType = "Retail" then
+  if orderType = "RETAIL" then
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/txt/DBM/S_POS-KBETM").text = round(laborCost * 1.15, 2)
   end if
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/txt/DBM/S_POS-VERPR").text = laborCost
   session.findById("wnd[0]").sendVKey 0
-  if invoiceHasTires and orderType = "Retail" then
-    session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/ctxt/DBM/S_POS-ITOBJID").text = "SUBLETTI"
+  if invoiceHasTires and vendorNumber = "200524" and orderType = "RETAIL" then
+    session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/ctxt/DBM/S_POS-ITOBJID").text = "SUBLETTX"
     session.findById("wnd[0]").sendVKey 0
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/txt/DBM/S_POS-DESCR1").text = "TIRES"
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3319/ctxt/DBM/S_POS-JOBS").text = "1"
@@ -351,7 +256,7 @@ function makeRepairOrder()
   ' Go to the parts tab and enter the vendor number
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB04").select
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB04/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3400/cntl2400_CUSTOM_CONTAINER3400/shellcont/shell").modifyCell 0,"LIFNR",vendorNumber
-  if invoiceHasTires and orderType = "Retail" then
+  if invoiceHasTires and vendorNumber = "200524" and orderType = "RETAIL" then
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB04/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3400/cntl2400_CUSTOM_CONTAINER3400/shellcont/shell").modifyCell 1,"LIFNR",vendorNumber
   end if
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB04/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3400/cntl2400_CUSTOM_CONTAINER3400/shellcont/shell").pressEnter
@@ -361,15 +266,15 @@ function makeRepairOrder()
   end if
   
   ' Create the purchase req
-  if invoiceHasTires and orderType = "Retail" then
+  if invoiceHasTires and vendorNumber = "200524" and orderType = "RETAIL" then
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB04/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3400/cntl2400_CUSTOM_CONTAINER3400/shellcont/shell").selectedRows = "0-1"
   else
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB04/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3400/cntl2400_CUSTOM_CONTAINER3400/shellcont/shell").selectedRows = "0"
   end if
   session.findById("wnd[0]/tbar[1]/btn[8]").press
-  if orderType = "Internal" or orderType = "VIO" then
+  if orderType = "INTERNAL" or orderType = "VIO" then
     session.findById("wnd[1]/usr/lbl[23,17]").setFocus
-  elseif orderType = "Retail" then
+  elseif orderType = "RETAIL" then
     session.findById("wnd[1]/usr/lbl[23,18]").setFocus
   end if
   session.findById("wnd[1]").sendVKey 2
@@ -384,9 +289,9 @@ function makeRepairOrder()
     msgBox "Something went wrong, please finish this manually"
     Wscript.Quit
   end if
-  if orderType = "Internal" or orderType = "VIO" then
+  if orderType = "INTERNAL" or orderType = "VIO" then
     repairOrderNumber = right(left(replace(session.findById("wnd[0]/titl").text, "&", ""), 37), 8)
-  elseif orderType = "Retail" then
+  elseif orderType = "RETAIL" then
     repairOrderNumber = right(left(replace(session.findById("wnd[0]/titl").text, "&", ""), 29), 8)
   end if
 
@@ -409,26 +314,6 @@ function invoiceTotalCostMatchesPurchaseOrderTotal()
   end if
 end function
 
-function findItteration()
-   on error resume next
-   dim testCase, a, b
-   a = 0
-   b = 0
-   do while true
-      testCase = session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & b & a & "/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/txtMEPO1211-EBELP[1,0]").text
-      if err.number = 0 then
-        exit do
-      end if
-      err.clear
-      a = a + 1
-      if a = 10 then
-         a = 0
-         b = b + 1
-      end if
-   loop
-   findItteration = b & a
-end function
-
 function addPurchaseReqToPurchaseOrder()
   on error resume next
   ' Go to the PO
@@ -437,36 +322,32 @@ function addPurchaseReqToPurchaseOrder()
   session.findById("wnd[0]/tbar[1]/btn[17]").press
   session.findById("wnd[1]/usr/subSUB0:SAPLMEGUI:0003/ctxtMEPO_SELECT-EBELN").text = purchaseOrderNumber
   session.findById("wnd[1]").sendVKey 0
-
   
   ' Open and enter purchase req (this is labor)
   session.findById("wnd[0]/tbar[1]/btn[7]").press
-  itteration = findItteration()
-  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT10").select
-
-  firstOpenPoLine = 0
-  do while true
-    if session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/txtMEPO1211-EBELP[1," & firstOpenPoLine & "]").text = "" then
-      exit do
-    end if
-    firstOpenPoLine = firstOpenPoLine + 1
-  loop
-
-  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/ctxtMEPO1211-BANFN[13," & firstOpenPoLine & "]").text = purchaseReq
-  if invoiceHasTires and orderType = "Retail" then
-    session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/txtMEPO1211-BNFPO[27," & firstOpenPoLine & "]").text = "10"
-    session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/ctxtMEPO1211-BANFN[13," & firstOpenPoLine + 1 & "]").text = purchaseReq
-    session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/txtMEPO1211-BNFPO[27," & firstOpenPoLine + 1 & "]").text = "20"
+  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0010/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT10").select
+  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0020/subSUB1:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1102/tabsHEADER_DETAIL/tabpTABHDT10").select
+  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0010/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/ctxtMEPO1211-BANFN[13,1]").text = purchaseReq
+  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0020/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/ctxtMEPO1211-BANFN[13,1]").text = purchaseReq
+  if invoiceHasTires and vendorNumber = "200524" and orderType = "RETAIL" then
+    session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0010/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/txtMEPO1211-BNFPO[27,1]").text = "10"
+    session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0020/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/txtMEPO1211-BNFPO[27,1]").text = "10"
+    session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0010/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/ctxtMEPO1211-BANFN[13,2]").text = purchaseReq
+    session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0020/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/ctxtMEPO1211-BANFN[13,2]").text = purchaseReq
+    session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0010/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/txtMEPO1211-BNFPO[27,2]").text = "20"
+    session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0020/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211/txtMEPO1211-BNFPO[27,2]").text = "20"
   end if
   session.findById("wnd[0]").sendVKey 0
 
   ' Select first line and delete
-  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211").getAbsoluteRow(0).selected = true
-  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:00" & itteration & "/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/btnDELETE").press
+  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0010/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211").getAbsoluteRow(0).selected = true
+  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0020/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/tblSAPLMEGUITC_1211").getAbsoluteRow(0).selected = true
+  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0010/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/btnDELETE").press
+  session.findById("wnd[0]/usr/subSUB0:SAPLMEGUI:0020/subSUB2:SAPLMEVIEWS:1100/subSUB2:SAPLMEVIEWS:1200/subSUB1:SAPLMEGUI:1211/btnDELETE").press
   session.findById("wnd[1]/usr/btnSPOP-OPTION1").press
 
   ' Wait for the user to finish entering the tires
-  if invoiceHasTires and orderType = "Retail" then
+  if invoiceHasTires and vendorNumber = "200524" and orderType = "RETAIL" then
   elseif invoiceHasTires then
     msgBox "DO NOT PRESS OK!" & vbCr & "Please add all tires to the PO." & vbCr & "AFTER you do that, press the OK button.", 0, "WAIT!!!!"
   end if
@@ -491,6 +372,10 @@ function goToRepairOrderAndMIGO()
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB04").select
 
   ' If it's internal, MIGO and close
+  if invoiceHasTires and vendorNumber = "200524" and orderType = "RETAIL" then
+  elseif invoiceHasTires then
+    msgBox "DON'T PRESS OK!!!!!" & vbCr & "Put the tires onto the RO and don't forget to add the manual price on them." & vbCr & "SAVE THE RO AND PUT IT INTO DISPLAY MODE WHEN YOU'RE DONE." & vbCr & "AFTER you're done with that, press OK."
+  end if
   ' MIGO
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB04/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3400/cntl2400_CUSTOM_CONTAINER3400/shellcont/shell").setCurrentCell 0,"ZZMIGO"
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB04/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3400/cntl2400_CUSTOM_CONTAINER3400/shellcont/shell").pressButtonCurrentCell
@@ -500,43 +385,23 @@ function goToRepairOrderAndMIGO()
   session.findById("wnd[0]/usr/ssubSUB_MAIN_CARRIER:SAPLMIGO:0002/subSUB_HEADER:SAPLMIGO:0101/subSUB_HEADER:SAPLMIGO:0100/tabsTS_GOHEAD/tabpOK_GOHEAD_GENERAL/ssubSUB_TS_GOHEAD_GENERAL:SAPLMIGO:0110/txtGOHEAD-LFSNR").text = invoiceNumber
   session.findById("wnd[0]/tbar[1]/btn[23]").press
 
-  ' Check the date
-  if roShouldBeClosed then
-    checkDateForLastSevenDaysOfMonth()
+  if orderType = "INTERNAL" or orderType = "VIO" then
+    ' Open RO, release, create billing
+    session.findById("wnd[0]/tbar[1]/btn[13]").press
+    session.findById("wnd[0]/tbar[1]/btn[37]").press
+    session.findById("wnd[0]/tbar[1]/btn[40]").press
   end if
-
-  if orderType = "Internal" or orderType = "VIO" then
-    if roShouldBeClosed then
-      ' Open RO, release, create billing
-      session.findById("wnd[0]/tbar[1]/btn[13]").press
-      session.findById("wnd[0]/tbar[1]/btn[37]").press
-      session.findById("wnd[0]/tbar[1]/btn[40]").press
-    end if
-  end if
-  if orderType = "VIO" and roShouldBeClosed then
+  if orderType = "VIO" then
     session.findById("wnd[1]/tbar[0]/btn[0]").press
   end if
 
 end function
 
-function checkDateForLastSevenDaysOfMonth()
-  dim currentMonth, currentDay, lastDayOfMonth
-  currentDate = date
-  currentMonth = month(currentDate)
-  currentDay = day(currentDate)
-  if currentMonth = 1 or currentMonth = 3 or currentMonth = 5 or currentMonth = 7 or currentMonth = 9 or currentMonth = 11 then
-    lastDayOfMonth = 31
-  elseif currentMonth = 4 or currentMonth = 6 or currentMonth = 8 or currentMonth = 10 or currentMonth = 12 then
-    lastDayOfMonth = 30
-  elseif currentMonth = 2 then
-    lastDayOfMonth = 28
-  end if
-  
-  if lastDayOfMonth - currentDay < 7 then
-    roShouldBeClosed = false
-  end if
-end function
 
+
+
+do until askForUserInput()
+loop
 
 if Not IsObject(application) Then
   Set SapGuiAuto  = GetObject("SAPGUI")
@@ -554,8 +419,6 @@ if IsObject(WScript) Then
 End if
 session.findById("wnd[0]").maximize
 
-do until askForUserInput()
-loop
 do until makeRepairOrder()
 loop
 addPurchaseReqToPurchaseOrder()

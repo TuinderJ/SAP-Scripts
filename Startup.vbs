@@ -13,6 +13,7 @@ If Not IsObject(session2) Then
 End If
 If IsObject(WScript) Then
    WScript.ConnectObject session,     "on"
+   WScript.ConnectObject session2,     "on"
    WScript.ConnectObject application, "on"
 End If
 session.findById("wnd[0]").maximize
