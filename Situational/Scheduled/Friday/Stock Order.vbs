@@ -16,7 +16,7 @@ function storeSAPData()
     WScript.ConnectObject session,     "on"
     WScript.ConnectObject application, "on"
   End If
-  ' session.findById("wnd[0]").maximize
+  session.findById("wnd[0]").maximize
 
   session.findById("wnd[0]/tbar[0]/okcd").text = "/NZZBIN"
   session.findById("wnd[0]/tbar[0]/btn[0]").press
@@ -47,6 +47,8 @@ function storeSAPData()
     end if
   loop
   err.clear
+  session.findById("wnd[0]/tbar[0]/btn[3]").press
+  session.findById("wnd[0]/tbar[0]/btn[3]").press
 end function
 
 function roundOrderQuantityToRoundingValue(orderQuantity, roundingValue)
@@ -60,7 +62,9 @@ end function
 function changeCSV()
   'Create an Excel Object
   Set excel = createObject("Excel.Application")
-  'Open the Rebill Pricing Excel File
+  excel.visible = true
+  excel.WindowState = -4137
+  'Open the CSV File
   Set workbook = excel.workBooks.open(partsMainFilePath)
 
   Dim rowcount
@@ -92,6 +96,14 @@ function changeCSV()
     sheet.cells(i, 2).value = orderQuantity
   Next
 
+  sheet.range("B1").autoFilter 2, ">0",,,true
+
+  if msgBox("Please check everything over.", vbOk, "Verify") = vbCancel then
+    wScript.Quit
+  end if
+
+  sheet.range("B1").autoFilter
+
   'End of data, clear memory
   Set sheet = Nothing
 
@@ -112,7 +124,8 @@ function sendEmail()
 
   With email
     .To = _
-    "Dezell Hunter <hunterd1@RushEnterprises.com>; Malexy Rocha Olivas <RochaOlivasm@RushEnterprises.com>; Hunter Robinson <Robinsonh@RushEnterprises.com>"
+    "Dezell Hunter <hunterd1@RushEnterprises.com>; Malexy Rocha Olivas <RochaOlivasm@RushEnterprises.com>; Rosalee Hernandez <hernandezr6@rushenterprises.com>; Jimmy Lindsay <lindsayj2@rushenterprises.com>"
+    ' "TuinderJ@RushEnterprises.com"
     '.CC = ""
     '.BCC = ""
     .Subject = date & " Leasing Stock Order"

@@ -1,0 +1,6 @@
+start /wait wscript "C:\Users\tuinderj\OneDrive - Rush Enterprises\Documents\SAP\SAP GUI\OneDrive Scripts\Situational\Scheduled\Friday\Check All ZZONOREP.vbs"
+start /wait wscript "C:\Users\tuinderj\OneDrive - Rush Enterprises\Documents\SAP\SAP GUI\OneDrive Scripts\Situational\Scheduled\Friday\Inventory Budget.vbs"
+start /wait wscript "C:\Users\tuinderj\OneDrive - Rush Enterprises\Documents\SAP\SAP GUI\OneDrive Scripts\Situational\Scheduled\Friday\Check Unpaid PO.vbs"
+start /wait wscript "C:\Users\tuinderj\OneDrive - Rush Enterprises\Documents\SAP\SAP GUI\OneDrive Scripts\Situational\Scheduled\Friday\7013 14 Day No Bill.vbs"
+start /wait wscript "C:\Users\tuinderj\OneDrive - Rush Enterprises\Documents\SAP\SAP GUI\OneDrive Scripts\Situational\Scheduled\Friday\Stock Order.vbs"
+start /wait wscript "C:\Users\tuinderj\OneDrive - Rush Enterprises\Documents\SAP\SAP GUI\OneDrive Scripts\Situational\Scheduled\Friday\CoreReport.vbs"

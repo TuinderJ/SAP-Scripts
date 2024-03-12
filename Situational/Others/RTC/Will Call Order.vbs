@@ -43,7 +43,7 @@ session.findById("wnd[0]").sendVKey 0
 session.findById("wnd[1]").sendVKey 0
 session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2067/subSUBSCREEN_2067:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3200/btnCNT_BTN_HEADTEXT").press
 session.findById("wnd[1]/usr/cntlLTEXT_CONTAINER/shellcont/shell/shellcont[0]/shell").doubleClickItem "ZSTO","COLUMN1"
-session.findById("wnd[1]/usr/cntlLTEXT_CONTAINER/shellcont/shell/shellcont[1]/shell/shellcont[0]/shell").text = "************" + vbCr + "***Will Call***" + vbCr + "************" + vbCr + ""
+session.findById("wnd[1]/usr/cntlLTEXT_CONTAINER/shellcont/shell/shellcont[1]/shell/shellcont[0]/shell").text = "************" + vbCr + "***Will Call***" + vbCr + "************" + vbCr + "" + vbCr + po
 session.findById("wnd[1]/tbar[0]/btn[8]").press
 session.findById("wnd[1]").sendVKey 0
 session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB04").select

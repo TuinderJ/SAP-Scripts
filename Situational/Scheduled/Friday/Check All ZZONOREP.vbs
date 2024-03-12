@@ -113,13 +113,11 @@ With objEmail
         "arreya@rushenterprises.com; " &_
         "martinezj15@rushenterprises.com; " &_
         "rings@rushenterprises.com; " &_
-        "swatsenbergr@rushenterprises.com; " &_
         "JacksonC1@RushEnterprises.com; " &_
         "Arndtb@RushEnterprises.com; " &_
-        "DavilaV@RushEnterprises.com;" &_
-        "SheridanM@RushEnterprises.com"
-    .CC = _
-        "woodr@rushenterprises.com"
+        "DavilaV@RushEnterprises.com; " &_
+        "TrevizoR@RushEnterprises.com"
+    .CC = ""
     .BCC = _
         "tuinderj@rushenterprises.com"
     .Subject = "Aged PO's " & Month(Date) & "/" & Day(Date)

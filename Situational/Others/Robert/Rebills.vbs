@@ -8,7 +8,7 @@
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 Dim advisorNumber
-advisorNumber = "1958"
+advisorNumber = "74247"
 
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -133,14 +133,14 @@ On Error Resume Next
 session.findById("wnd[0]").maximize
 
 
-Dim a, b, c, d, x, i, l, p, an, message, invoice, RO, laborRate, partsMarkup, unitNumber, VIN, customerNumber, vehicleDistributionChannel, partsMarkupCap, driveTime, test, jobTotal, lastJob, JobN(), Job(), Sto(), LabT, Lab(), LJob(), LabC, LabCP, PJob(), PQty(), PrtN(), PrtD(), PCst(), customerPricingData(), vehiclePricingData(), customerNumberChangeData()
+Dim a, b, c, d, x, i, l, p, an, message, invoice, RepairOrderNumber, laborRate, partsMarkup, unitNumber, VIN, customerNumber, vehicleDistributionChannel, partsMarkupCap, driveTime, test, jobTotal, lastJob, JobN(), Job(), Sto(), LabT, Lab(), LJob(), LabC, LabCP, PJob(), PQty(), PrtN(), PrtD(), PCst(), customerPricingData(), vehiclePricingData(), customerNumberChangeData()
 
 'User input for invoice
 Do Until Len(invoice) = 10
 If invoice = "" Then
 	invoice = InputBox("What is the invoice number from RTC?", "RTC Invoice")
 Else
-	invoice = InputBox("This was an invalid format for an invoice." & vbCr & "Please try again.", "RTC Invoice",invoice)
+	invoice = InputBox("This was an invalid format for an invoice." & vbCr & "Please try again.", "RTC Invoice", invoice)
 End If
 If invoice = "" Then
 	WScript.Quit
@@ -157,7 +157,8 @@ laborRate = 140
 partsMarkup = .65
 partsMarkupCap = ""
 
-driveTime = Replace(InputBox("Is there drive time?" + vbCr + "If so, what is the job number?"  + vbCr + "If there are multiple, separate the jobs with a comma. (i.e. 1,3)" + vbCr + "If not, leave blank.","Drive Time")," ","")
+driveTime = ""
+' driveTime = Replace(InputBox("Is there drive time?" + vbCr + "If so, what is the job number?"  + vbCr + "If there are multiple, separate the jobs with a comma. (i.e. 1,3)" + vbCr + "If not, leave blank.","Drive Time")," ","")
 
 
 Sub CheckCustomer()
@@ -182,7 +183,7 @@ Sub InDT(x)
 	End IF
 	Err.Clear
 End Sub
-Sub GrabLab()
+Sub GrabLabor()
 	For x = 0 To jobTotal - 1
 		If Int(session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:2300/cntlITEM_ALV_CUSTOM_CONTAINER/shellcont/shell").getCellValue(i,"JOBS")) = JobN(x) Then
 			LJob(l) = x + 1
@@ -191,11 +192,11 @@ Sub GrabLab()
 	If LJob(l) = "" Then
 		LJob(l) = 1
 	End If
-	Lab(l) = Lab(l) + Round(session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:2300/cntlITEM_ALV_CUSTOM_CONTAINER/shellcont/shell").getCellValue(i,"ZMENG"),1)
+	Lab(l) = Lab(l) + Round(session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:2300/cntlITEM_ALV_CUSTOM_CONTAINER/shellcont/shell").getCellValue(i,"ZMENG"),2)
 	LabT = LabT + Abs(Lab(l))
 	l = l + 1
 End Sub
-Sub GrabPartJ(y)
+Sub GrabPartJob(y)
 	For x = 0 To jobTotal - 1
 		If Int(session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:2300/cntlITEM_ALV_CUSTOM_CONTAINER/shellcont/shell").getCellValue(i,"JOBS")) = JobN(x) Then
 			PJob(p) = x + 1
@@ -215,14 +216,8 @@ End Sub
 
 
 'Verify choises
-If driveTime = "" Then
-	If MsgBox("Invoice Number: " & invoice & vbCr & "Last Job Number: " & lastJob & vbCr & "No Drive Time", vbYesNo, "Verify the following information.") = vbNo Then
-		WScript.Quit
-	End If
-Else
-	If MsgBox("Invoice Number: " & invoice & vbCr & "Last Job Number: " & lastJob & vbCr & "Drive Time Job:   " & driveTime, vbYesNo, "Verify the following information.") = vbNo Then
-		WScript.Quit
-	End If
+If MsgBox("Invoice Number: " & invoice & vbCr & "Last Job Number: " & lastJob, vbYesNo, "Verify the following information.") = vbNo Then
+	WScript.Quit
 End If
 
 
@@ -262,21 +257,21 @@ Do Until Err.Number <> 0
 		If Not inStr(session.findById("wnd[0]/usr/cntlCTRL_CONTAINERBSEG/shellcont/shell").getCellValue(i,"ZUONR"),"DBM") > 0 Then
 			LabC = LabC + Abs(session.findById("wnd[0]/usr/cntlCTRL_CONTAINERBSEG/shellcont/shell").getCellValue(i,"AZBET"))
 		Else
-			RO = Right(Left(session.findById("wnd[0]/usr/cntlCTRL_CONTAINERBSEG/shellcont/shell").getCellValue(i,"ZUONR"),13),8)
+			RepairOrderNumber = Right(Left(session.findById("wnd[0]/usr/cntlCTRL_CONTAINERBSEG/shellcont/shell").getCellValue(i,"ZUONR"),13),8)
 		End If
 	End If
 	i = i + 1
 Loop
 Err.Clear
 
-If RO = "" Then
-	RO = InputBox("Couldn't find the RO Number." & vbCr & "What is it?")
+If RepairOrderNumber = "" Then
+	RepairOrderNumber = InputBox("Couldn't find the RO Number." & vbCr & "What is it?")
 End If
 
 'Go to RTC RO to fill 
 session.findById("wnd[0]/tbar[0]/okcd").text = "/N/DBM/ORDER03"
 session.findById("wnd[0]/tbar[0]/btn[0]").press
-session.findById("wnd[0]/usr/ctxt/DBM/ORDER_SEARCH-VBELN").text = RO
+session.findById("wnd[0]/usr/ctxt/DBM/ORDER_SEARCH-VBELN").text = RepairOrderNumber
 session.findById("wnd[0]").sendVKey 0
 
 unitNumber = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/txtIS_VLCACTDATA_ITEM-ZZUN").text
@@ -350,7 +345,7 @@ If Not session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsT
 		ReDim Preserve Lab(l),LJob(l)
 		InDT(session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:2300/cntlITEM_ALV_CUSTOM_CONTAINER/shellcont/shell").getCellValue(i,"JOBS"))
 		If an = 0 Then
-			GrabLab()
+			GrabLabor()
 		Else
 			If l = 0 Then
 				Lab(0) = Round(session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:2300/cntlITEM_ALV_CUSTOM_CONTAINER/shellcont/shell").getCellValue(i,"ZMENG"),1)
@@ -368,7 +363,7 @@ If Not session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsT
 			GrabPart()
 			InDT(session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA3:/DBM/SAPLORDER_UI:2071/subSUBSCREEN_2071:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:2300/cntlITEM_ALV_CUSTOM_CONTAINER/shellcont/shell").getCellValue(i,"JOBS"))
 			If an = 0 Then
-				GrabPartJ(p)
+				GrabPartJob(p)
 			Else
 				PJob(p) = 1
 				an = 0
@@ -447,7 +442,7 @@ session.findById("wnd[1]/usr/cntlLTEXT_CONTAINER/shellcont/shell/shellcont[1]/sh
 session.findById("wnd[1]/tbar[0]/btn[8]").press
 
 session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA7:/DBM/SAPLORDER_UI:2070/btnGS_ORDER_SCREENS-SCARCP_ICON").press
-session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA7:/DBM/SAPLORDER_UI:2070/subSUBSCREEN_2070:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:SAPLZZMM031_PARTS:2010/txt/DBM/VBAK_COM-ZZRTC_ORDNO").text = RO
+session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA7:/DBM/SAPLORDER_UI:2070/subSUBSCREEN_2070:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:SAPLZZMM031_PARTS:2010/txt/DBM/VBAK_COM-ZZRTC_ORDNO").text = RepairOrderNumber
 session.findById("wnd[0]").sendVKey 11
 message = session.findById("wnd[1]/usr/txtMESSTXT1").text
 session.findById("wnd[1]/tbar[0]/btn[0]").press

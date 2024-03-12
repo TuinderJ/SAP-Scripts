@@ -1,22 +1,21 @@
 function askForRecipients()
-    answer = inputBox("Who do you want to send this to?" & vbCr & "1) You" & vbCr & "2) All Branches")
-    if answer = "1" Or answer = "" Then
-        recipients = "TuinderJ@rushenterprises.com"
-    elseif answer = "2" Then
+    ' answer = inputBox("Who do you want to send this to?" & vbCr & "1) You" & vbCr & "2) All Branches")
+    ' if answer = "1" Or answer = "" Then
+        ' recipients = "TuinderJ@rushenterprises.com"
+    ' elseif answer = "2" Then
         recipients = _
         "elliottr@rushenterprises.com; " &_
         "pilottem@rushenterprises.com; " &_
         "arreya@rushenterprises.com; " &_
         "martinezj15@rushenterprises.com; " &_
         "rings@rushenterprises.com; " &_
-        "swatsenbergr@rushenterprises.com; " &_
         "JacksonC1@RushEnterprises.com; " &_
         "TuinderJ@rushenterprises.com;" &_
-        "DavilaV@RushEnterprises.com;" &_
-        "SheridanM@RushEnterprises.com"
-    else
-        WScript.Quit
-    end if
+        "DavilaV@RushEnterprises.com; " &_
+        "TrevizoR@RushEnterprises.com"
+    ' else
+        ' WScript.Quit
+    ' end if
 end function
 
 Function pullBinLocationReport()
@@ -25,6 +24,7 @@ Function pullBinLocationReport()
     session.findById("wnd[0]/usr/btn%_S_MATNR_%_APP_%-VALU_PUSH").press
     session.findById("wnd[1]/usr/tabsTAB_STRIP/tabpNOSV").select
     session.findById("wnd[1]/usr/tabsTAB_STRIP/tabpNOSV/ssubSCREEN_HEADER:SAPLALDB:3030/tblSAPLALDBSINGLE_E/ctxtRSCSEL_255-SLOW_E[1,0]").text = "HC-2710B-RPS16-P1:APE"
+    session.findById("wnd[1]/usr/tabsTAB_STRIP/tabpNOSV/ssubSCREEN_HEADER:SAPLALDB:3030/tblSAPLALDBSINGLE_E/ctxtRSCSEL_255-SLOW_E[1,1]").text = "HC-2710B:APE"
     session.findById("wnd[1]/tbar[0]/btn[8]").press
     session.findById("wnd[0]/usr/btn%_S_WERKS_%_APP_%-VALU_PUSH").press
     session.findById("wnd[1]/usr/tabsTAB_STRIP/tabpSIVA/ssubSCREEN_HEADER:SAPLALDB:3010/tblSAPLALDBSINGLE/ctxtRSCSEL_255-SLOW_I[1,0]").text = "7008"
@@ -80,7 +80,7 @@ branchTargets(1, 1) = 35000
 branchTargets(0, 2) = 7020
 branchTargets(1, 2) = 15000
 branchTargets(0, 3) = 7039
-branchTargets(1, 3) = 45000
+branchTargets(1, 3) = 55000
 
 Set WshShell = WScript.CreateObject("WScript.Shell")
 strDesktop = WshShell.SpecialFolders("Desktop")

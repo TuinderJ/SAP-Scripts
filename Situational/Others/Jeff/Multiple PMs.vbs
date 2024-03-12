@@ -1,623 +1,697 @@
-Dim PRODUCTION
-PRODUCTION = True
+dim PRODUCTION
+PRODUCTION = true
 
-Function readIntervals()
-  Err.Clear
-  On Error Resume Next
-  Redim serviceInterval(2, 0)
+function readIntervals()
+  err.clear
+  on error resume next
+  redim serviceInterval(2, 0)
   i = 0
   x = 0
 
-  Do While True
+  do while true
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").setCurrentCell i,"STYPE"
-    If Err.Number <> 0 Then
-      Err.Clear
-      Exit Do
-    End If
-    'If PM
-    If inStr(1, session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"STYPE"),"PM") = 1 Then
+    dim intervalName
+    intervalName = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"STYPE")
+    if err.number <> 0 then
+      err.clear
+      exit do
+    end if
+    'check if there is a reefer interval
+    if not truckHasReefer and inStr(1, intervalName, "RFPM") > 0 then
+      truckHasReefer = true
+      workOrder.add "Reefer", session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"SCOUNT")
+      if not PRODUCTION then
+        msgBox "Truck has reefer"
+      end if
+    end if
+    'if PM
+    if inStr(1, intervalName, "PM") > 0 and inStr(1, intervalName, "RFPM") = 0 then
       storeInterval()
-    End If
+    end if
     i = i + 1
-  Loop
+  loop
   i = 0
-  Do While True
+  do while true
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").setCurrentCell i,"STYPE"
-    If Err.Number <> 0 Then
-        Exit Do
-    End If
-    'If OF
-    If inStr(1, session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"STYPE"),"OF") = 1 Then
-      If checkIfDue() = True Then
+    intervalName = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"STYPE")
+    if err.number <> 0 then
+      exit do
+    end if
+    'if OF
+    if inStr(1, intervalName, "OF") > 0 then
+      if checkIfDue(intervalName) = true then
         storeInterval()
-      Else
-        workOrder.Add "Oil", session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"SCOUNT")
-      End If
-    End If
-    'If DOT, DRYR, RFPM, DEFFI
-    If _
-    inStr(1, session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"STYPE"),"DOT") = 1 Or _
-    inStr(1, session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"STYPE"),"DRYR") = 1 Or _
-    inStr(1, session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"STYPE"),"RFPM") = 1 Or _
-    inStr(1, session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"STYPE"),"DEFFI") = 1 _
-    Then
-      If checkIfDue() = True Then
-        ' MsgBox("It decided the interval is due")
+      else
+        workOrder.add "Oil", session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"SCOUNT")
+      end if
+    end if
+    'if DOT, DRYR, DEFFI
+    if _
+    inStr(1, intervalName, "DOT") > 0 Or _
+    inStr(1, intervalName, "DRYR") > 0 Or _
+    inStr(1, intervalName, "DEFFI") > 0 _
+    then
+      if checkIfDue(intervalName) = true then
+        if not PRODUCTION then
+          msgBox("It decided the interval is due")
+        end if
         storeInterval()
-      End If
-    End If
+      end if
+    end if
     i = i + 1
-  Loop
-End Function
+  loop
+end function
 
-Function storeInterval()
-  Redim Preserve serviceInterval(2, x)
+function storeInterval()
+  if not PRODUCTION then  
+    msgBox "storing"
+  end if
+  redim Preserve serviceInterval(2, x)
   serviceInterval(0, x) = x + 1
   serviceInterval(1, x) = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"STYPE")
   serviceInterval(2, x) = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"STYPE_DESC")
   x = x + 1
-End Function
+end function
 
-Function checkIfDue()
-  result = False
-  Dim intervalDueDate, intervalMileage, truckCurrentMileage
+function checkIfDue(intervalName)
+  result = false
+  dim intervalDueDate, intervalMileage, unitofMeasure, truckCurrentMileage, reeferCurrentHours
   intervalDueDate = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"DATNEXT")
   intervalMileage = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"SCOUNT")
+  unitofMeasure = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/subCONTAINER_LEGAL_INTERVALS:/DBM/SAPLVM07:1400/cntlIOBJ_MULTI_SINT/shellcont/shell").getCellValue(i,"SCOUNT_U")
   truckCurrentMileage = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2067/subSUBSCREEN_2067:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3200/txt/DBM/VBAK_COM-MILEAGE").text
-  ' MsgBox("intervalDueDate: " & intervalDueDate & vbCr & "currentDate: " & Date & vbCr & "intervalMileage: " & intervalMileage & vbCr & "truckCurrentMileage: " & truckCurrentMileage)
-  ' MsgBox("Date check: " & Date + CInt(Right(serviceInterval(1, 0),Len(serviceInterval(1, 0)) - 2)) & vbCr & "Interval: " & CDate(intervalDueDate))
-  If intervalDueDate <> "" Then
-    If Date + CInt(Right(serviceInterval(1, 0),Len(serviceInterval(1, 0)) - 2)) > CDate(intervalDueDate) Then
-      result = True
-    End If
-  End If
-  If result = False Then
-    If _
-    "" = intervalMileage Or _
-    0 = CLng(intervalMileage) _
-    Then
-    Else
-      If CLng(intervalMileage) <= CLng(truckCurrentMileage) Then
-        result = True
-      End If
-    End If
-  End If
+  reeferCurrentHours = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2067/subSUBSCREEN_2067:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3200/txt/DBM/VBAK_COM-ZZREEFER_HRS").text
+  if not PRODUCTION then
+    msgBox("intervalDueDate: " & intervalDueDate & vbCr & "currentDate: " & date & vbCr & "intervalMileage: " & intervalMileage & vbCr & "truckCurrentMileage: " & truckCurrentMileage)
+  end if
+  if intervalDueDate <> "" then
+    if instr(intervalName, "RFPM") > 0 then
+      if not PRODUCTION then
+        msgBox "Reefer interval"
+      end if
+      if reeferCurrentHours > intervalMileage then
+        result = true
+        if not PRODUCTION then
+          msgBox "Due by reefer hours"
+        end if
+      end if
+    else
+      if isNumeric(right(serviceInterval(1, 0),Len(serviceInterval(1, 0)) - 2)) then
+        if date + CInt(right(serviceInterval(1, 0),Len(serviceInterval(1, 0)) - 2)) > CDate(intervalDueDate) then
+          result = true
+          if not PRODUCTION then
+            msgBox "Due by time 1"
+          end if
+        end if
+      else
+        if date + 90 > CDate(intervalDueDate) then
+          result = true
+          if not PRODUCTION then
+            msgBox "Due by time 2"
+          end if
+        end if
+      end if
+    end if
+  end if
+  if result = false then
+    on error resume next
+    if unitofMeasure = "MI" then
+      if cLng(intervalMileage) <> 0 then
+        if CLng(intervalMileage) <= CLng(truckCurrentMileage) then
+          result = true
+          if not PRODUCTION then
+            msgBox "Due by Miles"
+          end if
+        end if
+      end if
+    end if
+  end if
+  err.clear
   checkIfDue = result
-End Function
+end function
 
-Function makeJobs()
+function makeJobs()
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB02").select
-  For job = 0 to UBound(serviceInterval, 2)
+  for job = 0 to UBound(serviceInterval, 2)
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB02/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI1:2341/txt/DBM/JOB_COM-DESCR1").text = serviceInterval(1, job) & " -" & serviceInterval(2, job)
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB02/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI1:2341/txt/DBM/JOB_COM-DESCR2").text = serviceInterval(1, job)
     session.findById("wnd[0]").sendVKey 0
     session.findById("wnd[0]").sendVKey 5
-  Next
-End Function
+  next
+end function
 
-Function addLabor()
+function addLabor()
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03").select
-  For job = 0 To UBound(serviceInterval, 2)
+  for job = 0 to UBound(serviceInterval, 2)
     session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-JOBS").text = serviceInterval(0, job)
-    If inStr(1, serviceInterval(1, job),"PM") = 1 Then
+    if inStr(1, serviceInterval(1, job),"PM") > 0 then
       session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-ITOBJID").text = "PM HD"
-    End If
-    If inStr(1, serviceInterval(1, job),"OF") = 1 Then
+    end if
+    if inStr(1, serviceInterval(1, job),"OF") > 0 then
       session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-ITOBJID").text = "PM OF"
-    End If
-    If inStr(1, serviceInterval(1, job),"DOT") = 1 Then
+    end if
+    if inStr(1, serviceInterval(1, job),"DOT") > 0 then
       session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-ITOBJID").text = "10"
-    End If
-    If inStr(1, serviceInterval(1, job),"DRYR") = 1 Then
+    end if
+    if inStr(1, serviceInterval(1, job),"DRYR") > 0 then
       session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-ITOBJID").text = "1310056"
-    End If
-    If inStr(1, serviceInterval(1, job),"RFPM") = 1 Then
+    end if
+    if inStr(1, serviceInterval(1, job),"RFPM") > 0 then
       session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-ITOBJID").text = "9800050"
-    End If
-    If inStr(1, serviceInterval(1, job),"DEFFI") = 1 Then
+    end if
+    if inStr(1, serviceInterval(1, job),"DEFFI") > 0 then
       session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB03/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2061/subSUBSCREEN_2061:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3310/ctxt/DBM/S_POS-ITOBJID").text = "4307002"
-    End If
+    end if
     session.findById("wnd[0]").sendVKey 0
     session.findById("wnd[0]").sendVKey 0
-  Next
-End Function
+  next
+end function
 
-Sub readOrder()
-  Dim title, unit
+function readOrder()
+  dim title, unit
   session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01").select
   title = session.findById("wnd[0]/titl").text
   title = replace(title, "&", "")
-  workOrder.add "Customer", Right(title, len(title) - 40)
-  workOrder.add "RO", Right(Left(title,37),8)
+  workOrder.add "Customer", right(title, len(title) - 40)
+  workOrder.add "RO", right(Left(title,37),8)
   unit = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/txtIS_VLCACTDATA_ITEM-ZZUN").text
   customerUnit = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA2:/DBM/SAPLORDER_UI:2063/subSUBSCREEN_2063:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLVSALES_UI:2000/txtIS_VLCACTDATA_ITEM-VHCEX").text
-  if unit <> "" Then
-    if customerUnit <> "" Then
-      workOrder.add "Unit", Left(unit, 3) & "-" & Right(unit, len(unit) - 3) & " / " & customerUnit
-    Else
-      workOrder.add "Unit", Left(unit, 3) & "-" & Right(unit, len(unit) - 3)
-    End If
-  Else
+  if unit <> "" then
+    if customerUnit <> "" then
+      workOrder.add "Unit", Left(unit, 3) & "-" & right(unit, len(unit) - 3) & " / " & customerUnit
+    else
+      workOrder.add "Unit", Left(unit, 3) & "-" & right(unit, len(unit) - 3)
+    end if
+  else
     workOrder.add "Unit", customerUnit
-  End If
-End Sub
+  end if
+end function
 
-Sub convertServiceIntervalsToJobs()
-  For job = 0 to UBound(serviceInterval, 2)
-    Redim Preserve jobs(job)
+function convertServiceIntervalstoJobs()
+  for job = 0 to UBound(serviceInterval, 2)
+    redim Preserve jobs(job)
     jobs(job) = serviceInterval(1, job) & " -" & serviceInterval(2, job)
-  Next
-End Sub
+  next
+end function
 
-Sub printOldSheetAndMakeNew()
-  If IsObject(objExcel) Then
-    If PRODUCTION = true Then
-      objWorkbook.PrintOut
-    End If
-    objWorkbook.Close False
+function printoldSheetAndMakeNew()
+  if isObject(objExcel) then
+    if PRODUCTION = true then
+      objWorkbook.Printout
+    end if
+    objWorkbook.Close false
     objExcel.workbooks.Close
-    objExcel.Quit
-  End If
+    objExcel.quit
+  end if
 
-  Set objExcel = CreateObject("Excel.Application")
-  Set objWorkbook = objExcel.Workbooks.Add()
+  Set objExcel = createObject("Excel.Application")
+  Set objWorkbook = objExcel.workbooks.add()
 
-  If PRODUCTION = False Then
-    objExcel.visible = True
-    objExcel.WindowState = -4137
-  End If
+  if PRODUCTION = false then
+    objExcel.visible = true
+    objExcel.windowState = -4137
+  end if
 
-  objExcel.DisplayAlerts = False
-  objWorkbook.WorkSheets.Item(1).PageSetup.CenterHeader = workOrder.item("Customer")
-End Sub
+  objExcel.displayAlerts = false
+  objWorkbook.workSheets.item(1).pageSetup.centerHeader = workOrder.item("Customer")
+end function
 
-Sub addToSheet()
-  If toggle = "Top" Then
-    rowToStart = 1
+function addtoSheet()
+  if toggle = "top" then
+    rowtoStart = 1
     toggle = "Bottom"
-  Else
-    rowToStart = 24
-  End If
-  If rowToStart = 1 Then
-    printOldSheetAndMakeNew()
-  Else
-    If objWorkbook.WorkSheets.Item(1).PageSetup.CenterHeader <> workOrder.item("Customer") Then
-      printOldSheetAndMakeNew()
-      rowToStart = 1
-    Else
-      toggle = "Top"
-    End If
-  End If
+  else
+    rowtoStart = 24
+  end if
+  if rowtoStart = 1 then
+    printoldSheetAndMakeNew()
+  else
+    if objWorkbook.workSheets.item(1).pageSetup.centerHeader <> workOrder.item("Customer") then
+      printoldSheetAndMakeNew()
+      rowtoStart = 1
+    else
+      toggle = "top"
+    end if
+  end if
 
   ' RO
-  objExcel.Columns("A:I").ColumnWidth = "9.1"
-  objExcel.Range("A" & rowToStart, "C" & (rowToStart + 1)).Merge
-  With objExcel.Range("A" & rowToStart)
-    .Value = workOrder.item("RO")
-    .Font.Size = 18
-    .HorizontalAlignment = -4108
-  End With
+  objExcel.columns("A:I").columnWidth = "9.1"
+  objExcel.range("A" & rowtoStart, "C" & (rowtoStart + 1)).merge
+  with objExcel.range("A" & rowtoStart)
+    .value = workOrder.item("RO")
+    .font.size = 18
+    .horizontalAlignment = -4108
+  end with
 
-  ' Unit Number
-  objExcel.Range("D" & rowToStart, "F" & (rowToStart + 1)).Merge
-  With objExcel.Range("D" & rowToStart)
-    .Value = workOrder.item("Unit")
-    .Font.Size = 18
-    .HorizontalAlignment = -4108
-  End With
+  ' Unit number
+  objExcel.range("D" & rowtoStart, "F" & (rowtoStart + 1)).merge
+  with objExcel.range("D" & rowtoStart)
+    .value = workOrder.item("Unit")
+    .font.size = 18
+    .horizontalAlignment = -4108
+  end with
 
   ' Last DOT
-  objExcel.Range("G" & rowToStart, "G" & (rowToStart + 1)).Merge
-  With objExcel.Range("G" & rowToStart)
-    .Value = "Last DOT:"
-    .HorizontalAlignment = -4152
-  End With
-  objExcel.Range("H" & rowToStart, "I" & (rowToStart + 1)).Merge
-  with objExcel.Range("H" & rowToStart, "I" & (rowToStart + 1)).Borders(9)
+  objExcel.range("G" & rowtoStart, "G" & (rowtoStart + 1)).merge
+  with objExcel.range("G" & rowtoStart)
+    .value = "Last DOT:"
+    .horizontalAlignment = -4152
+  end with
+  objExcel.range("H" & rowtoStart, "I" & (rowtoStart + 1)).merge
+  with objExcel.range("H" & rowtoStart, "I" & (rowtoStart + 1)).borders(9)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
+  end with
 
   ' Miles
-  objExcel.Range("A" & (rowToStart + 2), "A" & (rowToStart + 3)).Merge
-  With objExcel.Range("A" & (rowToStart + 2))
-    .Value = "Miles:"
-    .Font.Size = 14
-    .HorizontalAlignment = -4152
-  End With
-  objExcel.Range("B" & (rowToStart + 2), "C" & (rowToStart + 3)).Merge
-  With objExcel.Range("B" & (rowToStart + 2), "C" & (rowToStart + 3)).Borders(9)
+  objExcel.range("A" & (rowtoStart + 2), "A" & (rowtoStart + 3)).merge
+  with objExcel.range("A" & (rowtoStart + 2))
+    .value = "Miles:"
+    .font.size = 14
+    .horizontalAlignment = -4152
+  end with
+  objExcel.range("B" & (rowtoStart + 2), "C" & (rowtoStart + 3)).merge
+  with objExcel.range("B" & (rowtoStart + 2), "C" & (rowtoStart + 3)).borders(9)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
+  end with
 
   ' Hours
-  objExcel.Range("A" & (rowToStart + 4), "A" & (rowToStart + 5)).Merge
-  With objExcel.Range("A" & (rowToStart + 4))
-    .Value = "Hours:"
-    .Font.Size = 14
-    .HorizontalAlignment = -4152
-  End With
-  objExcel.Range("B" & (rowToStart + 4), "C" & (rowToStart + 5)).Merge
-  with objExcel.Range("B" & (rowToStart + 4), "C" & (rowToStart + 5)).Borders(9)
+  objExcel.range("A" & (rowtoStart + 4), "A" & (rowtoStart + 5)).merge
+  with objExcel.range("A" & (rowtoStart + 4))
+    .value = "Hours:"
+    .font.size = 14
+    .horizontalAlignment = -4152
+  end with
+  objExcel.range("B" & (rowtoStart + 4), "C" & (rowtoStart + 5)).merge
+  with objExcel.range("B" & (rowtoStart + 4), "C" & (rowtoStart + 5)).borders(9)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
+  end with
+
+  ' Reefer Hours
+  if truckHasReefer then
+    objExcel.range("A" & (rowtoStart + 6), "B" & (rowtoStart + 6)).merge
+    with objExcel.range("A" & (rowtoStart + 6))
+      .value = "Reefer Hours:"
+      .font.size = 14
+      .horizontalAlignment = -4152
+    end with
+    objExcel.range("C" & (rowtoStart + 6), "D" & (rowtoStart + 6)).merge
+    with objExcel.range("C" & (rowtoStart + 6), "D" & (rowtoStart + 6)).borders(9)
+      .lineStyle = 1
+      .weight = 2
+      .colorIndex = -4105
+    end with
+  end if
 
   ' Fuel Filters
-  objExcel.Range("D" & (rowToStart + 2), "E" & (rowToStart + 3)).Merge
-  With objExcel.Range("D" & (rowToStart + 2))
-    .Value = "Fuel Filters?"
-    .HorizontalAlignment = -4152
+  objExcel.range("D" & (rowtoStart + 2), "E" & (rowtoStart + 3)).merge
+  with objExcel.range("D" & (rowtoStart + 2))
+    .value = "Fuel Filters?"
+    .horizontalAlignment = -4152
     .VerticalAlignment = -4108
-  End With
-  objExcel.Range("F" & (rowToStart + 2), "F" & (rowToStart + 3)).Merge
-  With objExcel.Range("F" & (rowToStart + 2), "F" & (rowToStart + 3)).Borders(7)
+  end with
+  objExcel.range("F" & (rowtoStart + 2), "F" & (rowtoStart + 3)).merge
+  with objExcel.range("F" & (rowtoStart + 2), "F" & (rowtoStart + 3)).borders(7)
     .lineStyle = 1
     .weight = 3
     .colorIndex = -4105
-  End With
-  With objExcel.Range("F" & (rowToStart + 2), "F" & (rowToStart + 3)).Borders(8)
+  end with
+  with objExcel.range("F" & (rowtoStart + 2), "F" & (rowtoStart + 3)).borders(8)
     .lineStyle = 1
     .weight = 3
     .colorIndex = -4105
-  End With
-  With objExcel.Range("F" & (rowToStart + 2), "F" & (rowToStart + 3)).Borders(9)
+  end with
+  with objExcel.range("F" & (rowtoStart + 2), "F" & (rowtoStart + 3)).borders(9)
     .lineStyle = 1
     .weight = 3
     .colorIndex = -4105
-  End With
-  With objExcel.Range("F" & (rowToStart + 2), "F" & (rowToStart + 3)).Borders(10)
+  end with
+  with objExcel.range("F" & (rowtoStart + 2), "F" & (rowtoStart + 3)).borders(10)
     .lineStyle = 1
     .weight = 3
     .colorIndex = -4105
-  End With
+  end with
 
   ' Oil Filters
-  objExcel.Range("D" & (rowToStart + 4), "E" & (rowToStart + 5)).Merge
-  With objExcel.Range("D" & (rowToStart + 4))
-    .Value = "Oil Filters?"
-    .HorizontalAlignment = -4152
+  objExcel.range("D" & (rowtoStart + 4), "E" & (rowtoStart + 5)).merge
+  with objExcel.range("D" & (rowtoStart + 4))
+    .value = "Oil Filters?"
+    .horizontalAlignment = -4152
     .VerticalAlignment = -4108
-  End With
-  objExcel.Range("F" & (rowToStart + 4), "F" & (rowToStart + 5)).Merge
-  With objExcel.Range("F" & (rowToStart + 4), "F" & (rowToStart + 5)).Borders(7)
+  end with
+  objExcel.range("F" & (rowtoStart + 4), "F" & (rowtoStart + 5)).merge
+  with objExcel.range("F" & (rowtoStart + 4), "F" & (rowtoStart + 5)).borders(7)
     .lineStyle = 1
     .weight = 3
     .colorIndex = -4105
-  End With
-  With objExcel.Range("F" & (rowToStart + 4), "F" & (rowToStart + 5)).Borders(8)
+  end with
+  with objExcel.range("F" & (rowtoStart + 4), "F" & (rowtoStart + 5)).borders(8)
     .lineStyle = 1
     .weight = 3
     .colorIndex = -4105
-  End With
-  With objExcel.Range("F" & (rowToStart + 4), "F" & (rowToStart + 5)).Borders(9)
+  end with
+  with objExcel.range("F" & (rowtoStart + 4), "F" & (rowtoStart + 5)).borders(9)
     .lineStyle = 1
     .weight = 3
     .colorIndex = -4105
-  End With
-  With objExcel.Range("F" & (rowToStart + 4), "F" & (rowToStart + 5)).Borders(10)
+  end with
+  with objExcel.range("F" & (rowtoStart + 4), "F" & (rowtoStart + 5)).borders(10)
     .lineStyle = 1
     .weight = 3
     .colorIndex = -4105
-  End With
+  end with
 
-  ' Date Completed
-  objExcel.Range("G" & (rowToStart + 2), "I" & (rowToStart + 3)).Merge
-  With objExcel.Range("G" & (rowToStart + 2))
-    .Value = "Date Completed:"
-    .Font.Size = 18
-    .HorizontalAlignment = -4108
-  End With
-  objExcel.Range("G" & (rowToStart + 4), "I" & (rowToStart + 5)).Merge
-  With objExcel.Range("G" & (rowToStart + 4), "I" & (rowToStart + 5)).Borders(9)
+  ' date Completed
+  objExcel.range("G" & (rowtoStart + 2), "I" & (rowtoStart + 3)).merge
+  with objExcel.range("G" & (rowtoStart + 2))
+    .value = "date Completed:"
+    .font.size = 18
+    .horizontalAlignment = -4108
+  end with
+  objExcel.range("G" & (rowtoStart + 4), "I" & (rowtoStart + 5)).merge
+  with objExcel.range("G" & (rowtoStart + 4), "I" & (rowtoStart + 5)).borders(9)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
+  end with
 
   ' Notes Box
-  With objExcel.Range("A" & (rowToStart + 7), "I" & (rowToStart + 22)).Borders(7)
+  with objExcel.range("A" & (rowtoStart + 7), "I" & (rowtoStart + 22)).borders(7)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
-  With objExcel.Range("A" & (rowToStart + 7), "I" & (rowToStart + 22)).Borders(8)
+  end with
+  with objExcel.range("A" & (rowtoStart + 7), "I" & (rowtoStart + 22)).borders(8)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
-  With objExcel.Range("A" & (rowToStart + 7), "I" & (rowToStart + 22)).Borders(9)
+  end with
+  with objExcel.range("A" & (rowtoStart + 7), "I" & (rowtoStart + 22)).borders(9)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
-  With objExcel.Range("A" & (rowToStart + 7), "I" & (rowToStart + 22)).Borders(10)
+  end with
+  with objExcel.range("A" & (rowtoStart + 7), "I" & (rowtoStart + 22)).borders(10)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
+  end with
 
   ' Jobs
-  objExcel.Range("A" & (rowToStart + 7), "C" & (rowToStart + 7)).Merge
-  With objExcel.Range("A" & (rowToStart + 7), "C" & (rowToStart + 7)).Borders(9)
+  objExcel.range("A" & (rowtoStart + 7), "C" & (rowtoStart + 7)).merge
+  with objExcel.range("A" & (rowtoStart + 7), "C" & (rowtoStart + 7)).borders(9)
     .lineStyle = -4118
     .weight = 2
     .colorIndex = -4105
-  End With
-  With objExcel.Range("A" & (rowToStart + 7), "C" & (rowToStart + 7)).Borders(10)
+  end with
+  with objExcel.range("A" & (rowtoStart + 7), "C" & (rowtoStart + 7)).borders(10)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
-  with objExcel.Range("A" & (rowToStart + 7))
-    .Value = "Jobs"
-    .HorizontalAlignment = -4108
-  End With
+  end with
+  with objExcel.range("A" & (rowtoStart + 7))
+    .value = "Jobs"
+    .horizontalAlignment = -4108
+  end with
   iterator = 0
-  For Each job in jobs
-    With objExcel.Range("A" & (rowToStart + iterator + 8), "C" & (rowToStart + iterator + 8))
-      .Merge
-      With .Borders(9)
+  for Each job in jobs
+    with objExcel.range("A" & (rowtoStart + iterator + 8), "C" & (rowtoStart + iterator + 8))
+      .merge
+      with .borders(9)
         .lineStyle = 5
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(10)
+      end with
+      with .borders(10)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-    End With
-    objExcel.Range("A" & (rowToStart + iterator + 8)).Value = job
+      end with
+    end with
+    objExcel.range("A" & (rowtoStart + iterator + 8)).value = job
     iterator = iterator + 1
-  Next
-  With objExcel.Range("A" & (rowToStart + iterator + 8), "C" & (rowToStart + iterator + 8)).Borders(8)
+  next
+  with objExcel.range("A" & (rowtoStart + iterator + 8), "C" & (rowtoStart + iterator + 8)).borders(8)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
+  end with
 
   ' Repairs / Notes
-  objExcel.Range("D" & (rowToStart + 7), "F" & (rowToStart + 7)).Merge
-  With objExcel.Range("D" & (rowToStart + 7), "F" & (rowToStart + 7)).Borders(9)
+  objExcel.range("D" & (rowtoStart + 7), "F" & (rowtoStart + 7)).merge
+  with objExcel.range("D" & (rowtoStart + 7), "F" & (rowtoStart + 7)).borders(9)
     .lineStyle = -4118
     .weight = 2
     .colorIndex = -4105
-  End With
-  With objExcel.Range("D" & (rowToStart + 7))
-    .Value = "Repairs / Notes"
-    .HorizontalAlignment = -4108
-  End With
-  With objExcel.Range("F" & (rowToStart + 7), "F" & (rowToStart + 22)).Borders(10)
+  end with
+  with objExcel.range("D" & (rowtoStart + 7))
+    .value = "Repairs / Notes"
+    .horizontalAlignment = -4108
+  end with
+  with objExcel.range("F" & (rowtoStart + 7), "F" & (rowtoStart + 22)).borders(10)
     .lineStyle = 1
     .weight = 2
     .colorIndex = -4105
-  End With
+  end with
 
-  'Check if oil is due and put an X in the box if it is
-  If workOrder.item("Oil") <> "" Then
-    With objExcel.Range("D" & (rowToStart + 8), "F" & (rowToStart + 8))
-      .Merge
-      .Value = "Oil change due at " & workOrder.item("Oil") & " miles."
-    End With
-  Else
-    With objExcel.Range("F" & (rowToStart + 4))
-      .Font.Size = 24
-      .HorizontalAlignment = -4108
+  ' If there's no oil change interval, add the mileage that it's due at
+  if workOrder.item("Oil") <> "" and workOrder.item("Oil") <> vbCr then
+    with objExcel.range("D" & (rowtoStart + 8), "F" & (rowtoStart + 8))
+      .merge
+      .value = "Oil change due at " & workOrder.item("Oil") & " miles."
+    end with
+  else
+    with objExcel.range("F" & (rowtoStart + 4))
+      .font.size = 24
+      .horizontalAlignment = -4108
       .VerticalAlignment = -4108
-      .Value = "X"
-    End With
-  End If
+      .value = "X"
+    end with
+  end if
+
+  ' If there's a reefer, add the reefer hours that it's due at
+  if truckHasReefer then
+    with objExcel.range("D" & (rowtoStart + 9), "F" & (rowtoStart + 9))
+      .merge
+      .value = "Reefer service due at " & workOrder.item("Reefer") & " hours."
+    end with
+  end if
 
   ' Parts Need to Order
-  objExcel.Range("G" & (rowToStart + 7), "I" & (rowToStart + 7)).Merge
-  With objExcel.Range("G" & (rowToStart + 7), "I" & (rowToStart + 7)).Borders(9)
+  objExcel.range("G" & (rowtoStart + 7), "I" & (rowtoStart + 7)).merge
+  with objExcel.range("G" & (rowtoStart + 7), "I" & (rowtoStart + 7)).borders(9)
     .lineStyle = -4118
     .weight = 2
     .colorIndex = -4105
-  End With
-  With objExcel.Range("G" & (rowToStart + 7))
-    .Value = "Parts Need to Order"
-    .HorizontalAlignment = -4108
-  End With
+  end with
+  with objExcel.range("G" & (rowtoStart + 7))
+    .value = "Parts Need to Order"
+    .horizontalAlignment = -4108
+  end with
 
   ' Tires
-  With objExcel.Range("A" & (rowToStart + 18))
-    .Value = "Tires"
-    .HorizontalAlignment = -4108
-  End With
-  For i = 2 To 3
-    With objExcel.Cells(rowToStart + 18, i)
+  with objExcel.range("A" & (rowtoStart + 18))
+    .value = "Tires"
+    .horizontalAlignment = -4108
+  end with
+  for i = 2 to 3
+    with objExcel.Cells(rowtoStart + 18, i)
       .Interior.colorIndex = 15
-      With .Borders(7)
+      with .borders(7)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(8)
+      end with
+      with .borders(8)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(9)
+      end with
+      with .borders(9)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(10)
+      end with
+      with .borders(10)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-    End With
-  Next
-  For i = 1 To 3
-    With objExcel.Cells(rowToStart + 19, i)
+      end with
+    end with
+  next
+  for i = 1 to 3
+    with objExcel.Cells(rowtoStart + 19, i)
       .Interior.colorIndex = 15
-      With .Borders(7)
+      with .borders(7)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(8)
+      end with
+      with .borders(8)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(9)
+      end with
+      with .borders(9)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(10)
+      end with
+      with .borders(10)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-    End With
-  Next
-  For i = 1 To 3
-    With objExcel.Cells(rowToStart + 21, i)
+      end with
+    end with
+  next
+  for i = 1 to 3
+    with objExcel.Cells(rowtoStart + 21, i)
       .Interior.colorIndex = 15
-      With .Borders(7)
+      with .borders(7)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(8)
+      end with
+      with .borders(8)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(9)
+      end with
+      with .borders(9)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(10)
+      end with
+      with .borders(10)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-    End With
-  Next
-  For i = 2 To 3
-    With objExcel.Cells(rowToStart + 22, i)
+      end with
+    end with
+  next
+  for i = 2 to 3
+    with objExcel.Cells(rowtoStart + 22, i)
       .Interior.colorIndex = 15
-      With .Borders(7)
+      with .borders(7)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(8)
+      end with
+      with .borders(8)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(9)
+      end with
+      with .borders(9)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-      With .Borders(10)
+      end with
+      with .borders(10)
         .lineStyle = 1
         .weight = 2
         .colorIndex = -4105
-      End With
-    End With
-  Next
-End Sub
+      end with
+    end with
+  next
+end function
 
-If Not IsObject(application) Then
-   Set SapGuiAuto  = GetObject("SAPGUI")
+if not isObject(application) then
+   Set SapGuiAuto  = Getobject("SAPGUI")
    Set application = SapGuiAuto.GetScriptingEngine
-End If
-If Not IsObject(connection) Then
+end if
+if not isObject(connection) then
    Set connection = application.Children(0)
-End If
-If Not IsObject(session) Then
+end if
+if not isObject(session) then
    Set session    = connection.Children(0)
-End If
-If IsObject(WScript) Then
-   WScript.ConnectObject session,     "on"
-   WScript.ConnectObject application, "on"
-End If
+end if
+if isObject(wScript) then
+   wScript.Connectobject session,     "on"
+   wScript.Connectobject application, "on"
+end if
 
-On Error Resume Next
+on error resume next
 session.findById("wnd[0]").maximize
 
-Dim truck()
-Dim serviceInterval()
-Dim jobs()
-Dim userInput, i, x, verifyTrucks, trucksNotFound, trucksFound, result, workOrder, objExcel, objWorkbook, toggle
-Set workOrder = CreateObject("Scripting.Dictionary")
-toggle = "Top"
+dim truck()
+dim serviceInterval()
+dim jobs()
+dim userInput, i, x, verifyTrucks, trucksNotFound, trucksFound, result, workOrder, objExcel, objWorkbook, toggle, truckHasReefer
+Set workOrder = createObject("Scripting.Dictionary")
+toggle = "top"
+truckHasReefer = false
 
 i = 0
 ' Ask the user which trucks they need
-Do While True
-    userInput = InputBox("What is the unit number of the next truck?" & vbCr & "Don't use a -" & vbCr & "If you're done, leave it blank.")
-    If userInput = "" Then
-        Exit Do
-    End If
-    Redim Preserve truck(i)
+do while true
+    userInput = InputBox("What is the unit number of the next truck?" & vbCr & "Don't use a -" & vbCr & "if you're done, leave it blank.", "add Trucks")
+    if userInput = "" then
+        exit do
+    end if
+    redim Preserve truck(i)
     truck(i) = userInput
     i = i + 1
-Loop
+loop
+
+if truck(0) = "" then
+  wScript.quit
+end if
 
 ' Ask the user for verification
-Do While True
+do while true
     i = 0
     verifyTrucks = ""
-    For Each unit in truck
+    for Each unit in truck
         verifyTrucks = verifyTrucks & vbCr & i + 1 & ": " & unit
         i = i + 1
-    Next
+    next
 
-    If MsgBox("Are all of these entered properly?" & verifyTrucks, vbYesNo) =  vbNo Then
-        i = InputBox("What number do you need to change?" & "If you need to cancel the whole thing, leave blank." & verifyTrucks)
-        If i = "" Then
-            WScript.Quit
-        End If
+    if msgBox("Are all of these entered properly?" & verifyTrucks, vbYesNo, "Verify") =  vbNo then
+        i = InputBox("What number do you need to change?" & "if you need to cancel the whole thing, leave blank." & verifyTrucks, "Change Which One")
+        if i = "" then
+            wScript.quit
+        end if
         i = i - 1
-        userInput = InputBox("What is the new number for " & truck(i) & "?" & vbCr & "Leave blank to remove it.")
-        If userInput <> "" Then
+        userInput = InputBox("What is the new number for " & truck(i) & "?" & vbCr & "Leave blank to remove it.", "New Unit number")
+        if userInput <> "" then
             truck(i) = userInput
-        Else
-            If i = UBound(truck) Then
-                Redim Preserve truck(i - 1)
-            End If
-            If i <= UBound(truck)Then
-                Do Until i => UBound(truck)
+        else
+            if i = UBound(truck) then
+                redim Preserve truck(i - 1)
+            end if
+            if i <= UBound(truck)then
+                do Until i => UBound(truck)
                     truck(i) = truck(i + 1)
                     i = i + 1
-                Loop
-                Redim Preserve truck(i - 1)
-            End If
-        End If
-    Else
-        Exit Do
-    End If
-Loop
+                loop
+                redim Preserve truck(i - 1)
+            end if
+        end if
+    else
+        exit do
+    end if
+loop
 
-For Each unit in truck
-  On Error Resume Next
+for each unit in truck
+  on error resume next
   session.findById("wnd[0]/tbar[0]/okcd").text = "/N/DBM/VSEARCH"
   session.findById("wnd[0]/tbar[0]/btn[0]").press
   session.findById("wnd[0]/usr/ssubSUBSCREEN1:/DBM/SAPLVM05:1100/tabsTABSTRIP/tabpSEARCHVM/ssubSUBSCREEN1:/DBM/SAPLVM05:1200/subSUBSCREEN1:/DBM/SAPLVM05:2000/subSUBSCREEN1:/DBM/SAPLVM05:2200/ctxtZZUN-LOW").text = unit
   session.findById("wnd[0]").sendVKey 0
   session.findById("wnd[0]/usr/ssubSUBSCREEN1:/DBM/SAPLVM05:1100/tabsTABSTRIP/tabpSEARCHVM/ssubSUBSCREEN1:/DBM/SAPLVM05:1200/btnBUTTON").press
   
-  Do
-    If session.findById("wnd[0]/sbar").text = "No vehicles could be selected" Then
+  do
+    if session.findById("wnd[0]/sbar").text = "No vehicles could be selected" then
       trucksNotFound = trucksNotFound & vbCr & unit
       trucksFound = trucksFound & vbCr
-      Exit Do
-    Else
+      exit do
+    else
       trucksFound = trucksFound & vbCr & unit
       session.findById("wnd[0]/usr/tabsMAIN/tabpORDER").select
       session.findById("wnd[0]/usr/tabsMAIN/tabpORDER/ssubDETAIL_SUBSCR:/DBM/SAPLVM08:2001/cntlDOCKING_CONTROL_PROXY/shellcont/shell").clickLink "ZS20","Column01"
@@ -628,7 +702,7 @@ For Each unit in truck
       session.findById("wnd[0]").sendVKey 0
       session.findById("wnd[1]/tbar[0]/btn[0]").press
       session.findById("wnd[1]/tbar[0]/btn[0]").press
-      Err.Clear
+      err.clear
 
       'Header
       session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2067/subSUBSCREEN_2067:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3200/txt/DBM/VBAK_COM-MILEAGE").text = session.findById("wnd[0]/usr/ssubORDER_SUBSCREEN:/DBM/SAPLATAB:0100/tabsTABSTRIP100/tabpTAB01/ssubSUBSC:/DBM/SAPLATAB:0200/subAREA1:/DBM/SAPLORDER_UI:2067/subSUBSCREEN_2067:/DBM/SAPLORDER_UI:2048/subSUBSCREEN:/DBM/SAPLORDER_UI:3200/txt/DBM/VBAK_COM-ZZPREV_MILEAGE").text
@@ -641,37 +715,37 @@ For Each unit in truck
       addLabor()
       session.findById("wnd[0]").sendVKey 11
       session.findById("wnd[0]/tbar[1]/btn[13]").press
-      convertServiceIntervalsToJobs()
+      convertServiceIntervalstoJobs()
       workOrder.add "Jobs", jobs
       readOrder()
       session.findById("wnd[0]/tbar[0]/btn[3]").press
-    End If
-  Loop While false
-  On Error Goto 0
-  addToSheet()
-  workOrder.RemoveAll
-  Redim jobs(0)
-Next
+    end if
+  loop while false
+  on error goto 0
+  addtoSheet()
+  workOrder.removeAll
+  redim jobs(0)
+next
 
-If IsObject(objExcel) Then
-  If PRODUCTION = true Then
-    objWorkbook.PrintOut
-  End If
-  objWorkbook.Close False
+if isObject(objExcel) then
+  if PRODUCTION = true then
+    objWorkbook.Printout
+  end if
+  objWorkbook.Close false
   objExcel.workbooks.Close
-  objExcel.Quit
-End If
+  objExcel.quit
+end if
 
 session.findById("wnd[0]/tbar[0]/okcd").text = "/N/DBM/ORDER"
 session.findById("wnd[0]/tbar[0]/btn[0]").press
 session.findById("wnd[0]/usr/tabsCNT_TAB/tabpTAB_01/ssubSEARCH_SUBSCREEN:/DBM/SAPLORDER_UI:1001/btnBUTTON04").press
 
-If trucksNotFound <> "" Then
-    MsgBox("These trucks were not found in SAP." & trucksNotFound)
-End If
-If trucksFound <> "" Then
-    MsgBox("These trucks were created successfully." & trucksFound)
-End If
+if trucksNotFound <> "" then
+    msgBox("These trucks were not found in SAP." & trucksNotFound)
+end if
+if trucksFound <> "" then
+    msgBox("These trucks were created successfully." & trucksFound)
+end if
 
-Set objExcel = Nothing
-Set objWorkbook = Nothing
+Set objExcel = nothing
+Set objWorkbook = nothing

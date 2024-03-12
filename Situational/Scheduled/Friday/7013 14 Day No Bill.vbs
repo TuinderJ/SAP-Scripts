@@ -211,7 +211,6 @@ Sub saveSpreadsheetAndSendEmail()
 
   With objEmail
     .To = _
-    "tuinderj@rushenterprises.com; " & _
     "Arreya@rushenterprises.com; " & _
     "ramirezm4@rushenterprises.com"
     '.CC = ""

@@ -41,7 +41,7 @@ Function pullBinLocationReport()
     session.findById("wnd[0]/mbar/menu[0]/menu[3]/menu[1]").select
     session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\Users\tuinderj\OneDrive - Rush Enterprises\Desktop\"
     session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "Delete Me.XLSX"
-    session.findById("wnd[1]/tbar[0]/btn[0]").press
+    session.findById("wnd[1]/tbar[0]/btn[11]").press
     session.findById("wnd[0]").sendVKey 3
     session.findById("wnd[0]").sendVKey 3
 End Function
@@ -66,7 +66,7 @@ Function pullCoreReport()
     session.findById("wnd[0]/mbar/menu[0]/menu[3]/menu[1]").select
     session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\Users\tuinderj\OneDrive - Rush Enterprises\Desktop\"
     session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "Cores & No Move.XLSX"
-    session.findById("wnd[1]/tbar[0]/btn[0]").press
+    session.findById("wnd[1]/tbar[0]/btn[11]").press
 
     session.findById("wnd[0]").sendVKey 3
     session.findById("wnd[0]").sendVKey 3

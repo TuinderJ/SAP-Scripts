@@ -8,14 +8,13 @@ End If
 If Not IsObject(session) Then
    Set session    = connection.Children(0)
 End If
-If Not IsObject(session2) Then
-   Set session2    = connection.Children(1)
-End If
 If IsObject(WScript) Then
    WScript.ConnectObject session,     "on"
-   WScript.ConnectObject session2,     "on"
    WScript.ConnectObject application, "on"
 End If
+session.findById("wnd[0]").restore
+session.findById("wnd[0]").top = 0
+session.findById("wnd[0]").left = 0
 session.findById("wnd[0]").maximize
 session.findById("wnd[0]/usr/cntlIMAGE_CONTAINER/shellcont/shell/shellcont[0]/shell").expandNode "F00068"
 session.findById("wnd[0]/usr/cntlIMAGE_CONTAINER/shellcont/shell/shellcont[0]/shell").expandNode "F00071"
@@ -26,6 +25,19 @@ session.findById("wnd[0]/usr/cntlIMAGE_CONTAINER/shellcont/shell/shellcont[0]/sh
 session.findById("wnd[0]/usr/cntlIMAGE_CONTAINER/shellcont/shell/shellcont[0]/shell").expandNode "F00070"
 session.findById("wnd[0]/usr/cntlIMAGE_CONTAINER/shellcont/shell/shellcont[0]/shell").expandNode "F00105"
 
+
+session.findById("wnd[0]/tbar[0]/btn[419]").press
+wScript.sleep 1000
+
+If Not IsObject(session2) Then
+   Set session2    = connection.Children(1)
+End If
+WScript.ConnectObject session2,     "on"
+
+
+session2.findById("wnd[0]").restore
+session2.findById("wnd[0]").top = 0
+session2.findById("wnd[0]").left = 2562
 session2.findById("wnd[0]").maximize
 session2.findById("wnd[0]/usr/cntlIMAGE_CONTAINER/shellcont/shell/shellcont[0]/shell").expandNode "F00068"
 session2.findById("wnd[0]/usr/cntlIMAGE_CONTAINER/shellcont/shell/shellcont[0]/shell").expandNode "F00071"
