@@ -521,7 +521,6 @@ function makeRepairOrder()
     Wscript.Quit
   end if
   repairOrderNumber = trim(split(split(session.findById("wnd[0]/titl").text, ":")(1), "-")(0))
-  msgBox repairOrderNumber 'TODO: debug
   makeRepairOrder = true
 end function
 

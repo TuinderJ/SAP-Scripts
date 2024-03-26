@@ -114,7 +114,6 @@ With objEmail
         "martinezj15@rushenterprises.com; " &_
         "rings@rushenterprises.com; " &_
         "JacksonC1@RushEnterprises.com; " &_
-        "Arndtb@RushEnterprises.com; " &_
         "DavilaV@RushEnterprises.com; " &_
         "TrevizoR@RushEnterprises.com"
     .CC = ""
